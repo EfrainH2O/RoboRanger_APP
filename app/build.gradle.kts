@@ -60,4 +60,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // Integracion de la dependencia de navegacion
+    implementation("androidx.navigation:navigation-compose:2.9.5")
 }

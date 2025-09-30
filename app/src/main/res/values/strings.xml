@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">RoboRanger</string>
+    <string name="control_title">RoboRanger</string>
+    <string name="form_entry_title">Formulario</string>
+    <string name="back_icon">Regresar</string>
+    <string name="add_icon">Agregar</string>
+    <string name="settings">Configuración</string>
+    <string name="home_title">RoboRanger App</string>
+    <string name="login_title">Iniciar Sesión</string>
+    <string name="form_details_title">Formulario</string>
 </resources>

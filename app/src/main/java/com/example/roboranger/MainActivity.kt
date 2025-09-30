@@ -19,31 +19,16 @@ import com.example.roboranger.ui.theme.RoboRangerTheme
 import com.example.roboranger.view_model.RobotControlViewModel
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: RobotControlViewModel by viewModels()
+    // Omitida por el momento en lo que se define el enruteado todas las vistas
+    // private val viewModel: RobotControlViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             RoboRangerTheme {
-                Defaulting(viewModel)
+                RoboRangerApp()
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RoboRangerTheme {
-        Greeting("Android")
     }
 }
 
@@ -59,5 +44,4 @@ fun Defaulting(viewModel: RobotControlViewModel){
             Text("GoingFront")
         }
     }
-
 }
