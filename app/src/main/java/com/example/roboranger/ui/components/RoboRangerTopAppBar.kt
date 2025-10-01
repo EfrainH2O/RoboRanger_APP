@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import com.example.roboranger.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,7 +29,12 @@ fun RoboRangerTopAppBar(
     navigateToSettings: () -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
-        title = { Text(title) },
+        title = {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold
+            )
+                },
         modifier = modifier,
         scrollBehavior = scrollBehavior,
         navigationIcon = {
