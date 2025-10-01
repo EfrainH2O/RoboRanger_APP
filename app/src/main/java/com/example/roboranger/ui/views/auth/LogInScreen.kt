@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.roboranger.R
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
@@ -76,4 +77,12 @@ fun LogInBody(
             onClick = onNavigateHome
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LogInBodyPreview(){
+    LogInBody(
+        onNavigateHome = {}
+    )
 }
