@@ -62,4 +62,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     // Integracion de la dependencia de navegacion
     implementation("androidx.navigation:navigation-compose:2.9.5")
+    // Integracion de la dependencia de Material Icons
+    implementation("androidx.compose.material:material-icons-core:1.7.8")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 }

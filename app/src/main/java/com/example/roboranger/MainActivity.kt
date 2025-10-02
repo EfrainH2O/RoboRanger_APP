@@ -16,32 +16,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.roboranger.ui.theme.RoboRangerTheme
-import com.example.roboranger.view_model.RobotControlViewModel
+import com.example.roboranger.ui.views.control.RobotControlViewModel
 
 class MainActivity : ComponentActivity() {
     // Omitida por el momento en lo que se define el enruteado todas las vistas
-    // private val viewModel: RobotControlViewModel by viewModels()
+    private val controlViewModel: RobotControlViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             RoboRangerTheme {
-                RoboRangerApp()
+                RoboRangerApp(
+                    controlViewModel = controlViewModel
+                )
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Defaulting(viewModel: RobotControlViewModel){
-    val res = viewModel.errorM.value
-    Box(Modifier.padding(15.dp)){
-        if(res == null){
-            Text("Not Going Front")
-            viewModel.try_go_front()
-        }else  {
-            Text("GoingFront")
         }
     }
 }

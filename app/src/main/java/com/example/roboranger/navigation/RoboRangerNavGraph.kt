@@ -9,6 +9,7 @@ import com.example.roboranger.ui.views.auth.LogInDestination
 import com.example.roboranger.ui.views.auth.LogInScreen
 import com.example.roboranger.ui.views.control.ControlDestination
 import com.example.roboranger.ui.views.control.ControlScreen
+import com.example.roboranger.ui.views.control.RobotControlViewModel
 import com.example.roboranger.ui.views.form.FormDetailsDestination
 import com.example.roboranger.ui.views.form.FormDetailsScreen
 import com.example.roboranger.ui.views.form.FormEntryDestination
@@ -22,6 +23,7 @@ import com.example.roboranger.ui.views.settings.SettingsScreen
 @Composable
 fun RoboRangerNavHost (
     navController: NavHostController,
+    controlViewModel: RobotControlViewModel,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -33,7 +35,8 @@ fun RoboRangerNavHost (
             ControlScreen(
                 onNavigateUp = { navController.navigateUp() },
                 navigateToFormEntry = { navController.navigate(FormEntryDestination.route) },
-                onNavigateSettings = { navController.navigate(SettingsDestination.route) }
+                onNavigateSettings = { navController.navigate(SettingsDestination.route) },
+                controlViewModel = controlViewModel
             )
         }
         composable(route = FormEntryDestination.route) {

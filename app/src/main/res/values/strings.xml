@@ -8,4 +8,14 @@
     <string name="home_title">RoboRanger App</string>
     <string name="login_title">Iniciar Sesión</string>
     <string name="form_details_title">Formulario</string>
+    <string name="arrow_upward_icon">Adelante</string>
+    <string name="arrow_downward_icon">Atrás</string>
+    <string name="arrow_forward_icon">Derecha</string>
+    <string name="arrow_back_icon">Izquierda</string>
+    <string name="stop_icon">Detener</string>
+    <string name="sensors_icon">Sensores</string>
+    <string name="location_icon">Ubicación</string>
+    <string name="photos_icon">Foto</string>
+    <string name="flashlight_on_icon">Linterna Encendida</string>
+    <string name="flashlight_off_icon">Linterna Apagada</string>
 </resources>
