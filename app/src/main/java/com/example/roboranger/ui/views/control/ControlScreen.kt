@@ -38,17 +38,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.roboranger.R
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
+import com.example.roboranger.ui.components.MovementActionButton
 import com.example.roboranger.ui.components.RoboRangerFAB
 import com.example.roboranger.ui.components.RoboRangerRoundIconButton
-import com.example.roboranger.ui.components.RoboRangerSquareIconButton
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
-import com.example.roboranger.ui.theme.RoboRangerTheme
 
 object ControlDestination : NavigationDestination {
     override val route = "control"
@@ -62,7 +59,8 @@ fun ControlScreen(
     navigateToFormEntry: () -> Unit,
     onNavigateSettings: () -> Unit,
     canNavigateBack: Boolean = true,
-    canNavigateSettings: Boolean = true
+    canNavigateSettings: Boolean = true,
+    controlViewModel: RobotControlViewModel
 ) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -91,7 +89,8 @@ fun ControlScreen(
                 .padding(innerPadding)
                 .fillMaxWidth(),
             flashlightState = flashlightState,
-            toggleFlashlight = { flashlightState = !flashlightState }
+            toggleFlashlight = { flashlightState = !flashlightState },
+            controlViewModel = controlViewModel
         )
     }
 }
@@ -100,7 +99,8 @@ fun ControlScreen(
 fun ControlBody(
     modifier: Modifier = Modifier,
     flashlightState: Boolean,
-    toggleFlashlight: () -> Unit
+    toggleFlashlight: () -> Unit,
+    controlViewModel: RobotControlViewModel
 ) {
     Row(
         modifier = modifier
@@ -111,7 +111,8 @@ fun ControlBody(
         LeftControls(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxSize()
+                .fillMaxSize(),
+            controlViewModel = controlViewModel
         )
         CenterVideo(
             modifier = Modifier
@@ -130,7 +131,8 @@ fun ControlBody(
 
 @Composable
 private fun LeftControls(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    controlViewModel: RobotControlViewModel
 ) {
     Column(
         modifier = modifier,
@@ -142,13 +144,16 @@ private fun LeftControls(
             action = {},
             label = stringResource(R.string.sensors_icon)
         )
-        DPad()
+        DPad(
+            controlViewModel = controlViewModel
+        )
     }
 }
 
 @Composable
 private fun DPad(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    controlViewModel: RobotControlViewModel
 ) {
     Column(
         modifier = modifier,
@@ -156,36 +161,41 @@ private fun DPad(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(horizontalArrangement = Arrangement.Center) {
-            RoboRangerSquareIconButton(
+            MovementActionButton(
                 icon = Icons.Filled.ArrowUpward,
-                action = {},
-                label = stringResource(R.string.arrow_upward_icon)
+                label = stringResource(R.string.arrow_upward_icon),
+                onEntryAction = { controlViewModel.tryGoFront() },
+                onEndAction = { controlViewModel.stop() }
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            RoboRangerSquareIconButton(
+            MovementActionButton(
                 icon = Icons.Filled.ArrowBack,
-                action = {},
-                label = stringResource(R.string.arrow_back_icon)
+                label = stringResource(R.string.arrow_back_icon),
+                onEntryAction = { controlViewModel.tryGoLeft() },
+                onEndAction = { controlViewModel.stop() }
             )
-            RoboRangerSquareIconButton(
+            MovementActionButton(
                 icon = Icons.Filled.Stop,
-                action = {},
                 label = stringResource(R.string.stop_icon),
+                onEntryAction = { controlViewModel.stop() },
+                onEndAction = { controlViewModel.stop() },
                 containerColor = Color.White,
                 contentColor = Color(0xFFBC4749)
             )
-            RoboRangerSquareIconButton(
+            MovementActionButton(
                 icon = Icons.Filled.ArrowForward,
-                action = {},
-                label = stringResource(R.string.arrow_forward_icon)
+                label = stringResource(R.string.arrow_forward_icon),
+                onEntryAction = { controlViewModel.tryGoRight() },
+                onEndAction = { controlViewModel.stop() }
             )
         }
         Row(horizontalArrangement = Arrangement.Center) {
-            RoboRangerSquareIconButton(
+            MovementActionButton(
                 icon = Icons.Filled.ArrowDownward,
-                action = {},
-                label = stringResource(R.string.arrow_downward_icon)
+                label = stringResource(R.string.arrow_downward_icon),
+                onEntryAction = { controlViewModel.tryGoBack() },
+                onEndAction = { controlViewModel.stop() }
             )
         }
     }
@@ -242,13 +252,5 @@ private fun RightActions(
             containerColor = if (flashlightState) Color.White else Color(0xFF4E7029),
             contentColor = if (flashlightState) Color(0xFF4E7029) else Color.White
         )
-    }
-}
-
-@Preview(showSystemUi = true, device = Devices.PIXEL_4)
-@Composable
-fun ControlScreenPreview() {
-    RoboRangerTheme {
-        ControlScreen(onNavigateUp = {}, navigateToFormEntry = {}, onNavigateSettings = {})
     }
 }

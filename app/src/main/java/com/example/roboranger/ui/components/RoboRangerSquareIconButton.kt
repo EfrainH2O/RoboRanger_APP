@@ -2,6 +2,7 @@ package com.example.roboranger.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,6 +10,7 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,8 +23,9 @@ fun RoboRangerSquareIconButton(
     icon: ImageVector,
     label: String,
     action: () -> Unit,
-    containerColor: Color = Color(0xFF4E7029),
-    contentColor: Color = Color.White
+    containerColor: Color,
+    contentColor: Color,
+    interactionSource: MutableInteractionSource
 ) {
     Box(
         modifier = modifier.size(56.dp)
@@ -41,7 +44,8 @@ fun RoboRangerSquareIconButton(
             colors = IconButtonDefaults.filledIconButtonColors(
                 containerColor = containerColor,
                 contentColor = contentColor
-            )
+            ),
+            interactionSource = interactionSource
         ) {
             Icon(
                 imageVector = icon,
