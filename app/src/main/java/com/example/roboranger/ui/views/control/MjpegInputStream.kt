@@ -79,7 +79,6 @@ class MjpegInputStream(inputStream: InputStream) : DataInputStream(BufferedInput
             val imageData = ByteArray(imageSize)
             readFully(imageData)
 
-            Log.d("ImageParser", "Successfully extracted frame!")
             return imageData
         }
 

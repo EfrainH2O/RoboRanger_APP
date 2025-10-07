@@ -68,10 +68,10 @@ fun ControlScreen(
     canNavigateSettings: Boolean = true,
     controlViewModel: RobotControlViewModel
 ) {
+
     DisposableEffect(Unit) {
         // When the screen appears (is composed)
         controlViewModel.startStreaming()
-
         // When the screen disappears (is disposed)
         onDispose {
             controlViewModel.stopStreaming()

@@ -10,20 +10,28 @@ import com.example.roboranger.StreamClient
 import com.example.roboranger.util.MjpegInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class RobotControlViewModel: ViewModel() {
 
+    // -- values
     private val recivedVideoBitmap = MutableStateFlow<Bitmap?> (null)
     val videoBitmap = recivedVideoBitmap.asStateFlow()
     val errorM = mutableStateOf<String?>(null)
+    private val _time_left = MutableStateFlow(10)
+    val time_left = _time_left.asStateFlow()
     val lightState = mutableStateOf(false)
-
+    // -- Jobs
     private var streamingJob: Job? = null
+    private var timerJob: Job? = null
+    // -- Functions
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             try{
@@ -93,12 +101,11 @@ class RobotControlViewModel: ViewModel() {
 
                     // Wrap it with our new MJPEG parser
                     val mjpegInputStream = MjpegInputStream(inputStream)
-                    Log.d("xd","granxd")
                     while(isActive){
                         val bitmap = mjpegInputStream.readMjpegFrame()
                         if(bitmap != null){
                             recivedVideoBitmap.value = bitmap
-                            Log.d("streamDebug", "bitmap is not null")
+                            _time_left.update { 10 }
                         }else{
                             Log.e("streamError", "bitmapNull")
                             break
@@ -118,18 +125,51 @@ class RobotControlViewModel: ViewModel() {
                 Log.e("streamError", e.message ?: "Na" )
             }
         }
+        startTimer()
 
     }
 
     fun stopStreaming(){
         streamingJob?.cancel()
         streamingJob = null
+        recivedVideoBitmap.value = null
     }
 
     override fun onCleared() {
         stopStreaming()
         super.onCleared()
 
+    }
+
+    private fun startTimer() {
+        timerJob?.cancel() // Cancel any existing timer
+        timerJob = viewModelScope.launch {
+            while (isActive) {
+                delay(1000L)
+                // Decrement the timer. Use .update for safe modification.
+                _time_left.update { currentTime -> if (currentTime > 0) currentTime - 1 else 0 }
+
+                if (_time_left.value <= 0) {
+                    Log.e("streamError", "Restarting the Stream")
+                    // Timer reached zero, restart the stream
+                    restartStream()
+                    // Reset timer for the next cycle
+                    _time_left.update { 10 }
+                }
+            }
+        }
+    }
+
+    private fun restartStream() {
+        // This runs on the main thread from the timer
+        viewModelScope.launch {
+            // Stop the current stream
+            streamingJob?.cancel()
+            // Short delay to allow resources to be released
+            delay(100L)
+            // Start a new stream
+            startStreaming()
+        }
     }
 
 
