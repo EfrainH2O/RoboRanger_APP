@@ -1,4 +1,4 @@
-package com.example.roboranger.interfaces
+package com.example.roboranger.data.remote
 
 import retrofit2.http.GET
 

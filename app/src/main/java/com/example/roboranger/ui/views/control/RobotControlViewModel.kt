@@ -3,7 +3,7 @@ package com.example.roboranger.ui.views.control
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.roboranger.RetrofitClient
+import com.example.roboranger.data.remote.RetrofitClient
 import kotlinx.coroutines.launch
 
 class RobotControlViewModel: ViewModel() {
