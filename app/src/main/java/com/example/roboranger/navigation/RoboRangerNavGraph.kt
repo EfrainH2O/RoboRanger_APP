@@ -66,7 +66,7 @@ fun RoboRangerNavHost (
         }
         composable(route = LogInDestination.route) {
             LogInScreen(
-                navigateToHome = { navController.navigate(HomeDestination.route) }
+                onSignIn = { navController.navigate(HomeDestination.route) }
             )
         }
     }

@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RoboRangerTheme {
+            RoboRangerTheme(darkTheme = false, dynamicColor = false) {
                 RoboRangerApp(
                     controlViewModel = controlViewModel
                 )
