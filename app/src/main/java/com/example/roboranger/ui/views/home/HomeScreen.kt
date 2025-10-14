@@ -1,5 +1,6 @@
 package com.example.roboranger.ui.views.home
 
+import android.content.pm.ActivityInfo
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,6 +36,7 @@ import com.example.roboranger.R
 import com.example.roboranger.data.FormCard
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
+import com.example.roboranger.ui.components.LockScreenOrientation
 import com.example.roboranger.ui.components.RoboRangerBottomAppBar
 import com.example.roboranger.ui.components.RoboRangerButtonIcon
 import com.example.roboranger.ui.components.RoboRangerFormCard
@@ -66,6 +68,7 @@ fun HomeScreen(
         }
     }
 
+    LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     //val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
