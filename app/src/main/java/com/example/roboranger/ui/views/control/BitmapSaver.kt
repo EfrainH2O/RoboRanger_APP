@@ -20,7 +20,7 @@ sealed class SaveState{
 }
 
 object BitmapSaver {
-    suspend fun saveBitmap(context: Context, bitmap: Bitmap, displayName: String) : Flow<SaveState> = flow{
+    fun saveBitmap(context: Context, bitmap: Bitmap, displayName: String) : Flow<SaveState> = flow{
 
         val collection =
             MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)

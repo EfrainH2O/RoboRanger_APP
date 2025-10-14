@@ -186,7 +186,7 @@ class RobotControlViewModel: ViewModel() {
         if(bitmapShot == null){
             Log.d("cameraCapture", "NO IMAGE TO SAVE")
             Toast.makeText(context, "No image received to save.", Toast.LENGTH_SHORT).show()
-            return;
+            return
         }
 
         if (saveFileJob?.isActive == true) {
