@@ -65,8 +65,8 @@ dependencies {
     // Integracion de la dependencia de Material Icons
     implementation("androidx.compose.material:material-icons-core:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
-
+    // Integracion de la dependencia de dataStore para guardar el token de forma segura
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    // Integracion de la dependencia de LifeCycle ViewModel
     implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
-
-
 }

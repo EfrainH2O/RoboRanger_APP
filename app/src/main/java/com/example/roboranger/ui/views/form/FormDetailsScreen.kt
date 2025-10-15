@@ -1,5 +1,6 @@
 package com.example.roboranger.ui.views.form
 
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.roboranger.R
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
+import com.example.roboranger.ui.components.LockScreenOrientation
 
 object FormDetailsDestination: NavigationDestination {
     override val route = "form_details"
@@ -31,6 +33,7 @@ fun FormDetailsScreen(
     canNavigateBack: Boolean = true,
     canNavigateSettings: Boolean = true
 ) {
+    LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT)
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(

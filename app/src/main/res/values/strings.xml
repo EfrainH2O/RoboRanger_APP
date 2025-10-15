@@ -19,4 +19,14 @@
     <string name="flashlight_on_icon">Linterna Encendida</string>
     <string name="flashlight_off_icon">Linterna Apagada</string>
     <string name="stream_on">Stream</string>
+    <string name="show_icon">Mostrar</string>
+    <string name="hide_icon">Ocultar</string>
+    <string name="roboranger_logo">RoboRanger logo</string>
+    <string name="email_label">Correo</string>
+    <string name="placeholder_email">Introduzca su correo</string>
+    <string name="password_label">Contraseña</string>
+    <string name="placeholder_password">Introduzca su contraseña</string>
+    <string name="placeholder_username">Usuario</string>
+    <string name="placeholder_user_email">usuario@correo.com</string>
+    <string name="action_logout">Cerrar Sesión</string>
 </resources>

@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.example.roboranger.ui.views.auth.AuthViewModel
 import com.example.roboranger.ui.views.auth.LogInDestination
 import com.example.roboranger.ui.views.auth.LogInScreen
 import com.example.roboranger.ui.views.control.ControlDestination
@@ -22,13 +23,15 @@ import com.example.roboranger.ui.views.settings.SettingsScreen
 
 @Composable
 fun RoboRangerNavHost (
+    startDestination: String,
     navController: NavHostController,
     controlViewModel: RobotControlViewModel,
+    authViewModel: AuthViewModel,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
         navController = navController,
-        startDestination = LogInDestination.route,
+        startDestination = startDestination,
         modifier = modifier
     ) {
         composable(route = ControlDestination.route) {
@@ -48,7 +51,8 @@ fun RoboRangerNavHost (
         }
         composable(route = SettingsDestination.route) {
             SettingsScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                authViewModel = authViewModel
             )
         }
         composable(route = HomeDestination.route) {
@@ -65,9 +69,7 @@ fun RoboRangerNavHost (
             )
         }
         composable(route = LogInDestination.route) {
-            LogInScreen(
-                navigateToHome = { navController.navigate(HomeDestination.route) }
-            )
+            LogInScreen(authViewModel = authViewModel)
         }
     }
 }

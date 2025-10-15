@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.roboranger.navigation.RoboRangerNavHost
+import com.example.roboranger.ui.views.auth.AuthViewModel
 import com.example.roboranger.ui.views.control.RobotControlViewModel
 
 
@@ -11,7 +12,14 @@ import com.example.roboranger.ui.views.control.RobotControlViewModel
 @Composable
 fun RoboRangerApp(
     navController: NavHostController = rememberNavController(),
-    controlViewModel: RobotControlViewModel
+    startDestination: String,
+    controlViewModel: RobotControlViewModel,
+    authViewModel: AuthViewModel
 ) {
-    RoboRangerNavHost(navController = navController, controlViewModel = controlViewModel)
+    RoboRangerNavHost(
+        navController = navController,
+        controlViewModel = controlViewModel,
+        startDestination = startDestination,
+        authViewModel = authViewModel
+    )
 }
