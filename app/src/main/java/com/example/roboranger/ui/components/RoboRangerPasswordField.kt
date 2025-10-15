@@ -23,7 +23,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.roboranger.R
-import com.example.roboranger.ui.theme.PrincipalPrimary
+import com.example.roboranger.ui.theme.PrimaryForestGreen
 
 @Composable
 fun RoboRangerPasswordField(
@@ -55,7 +55,7 @@ fun RoboRangerPasswordField(
                 Icon(
                     imageVector = if (visible) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
                     contentDescription = if (visible) stringResource(R.string.show_icon) else stringResource(R.string.hide_icon),
-                    tint = PrincipalPrimary
+                    tint = PrimaryForestGreen
                 )
             }
         },
