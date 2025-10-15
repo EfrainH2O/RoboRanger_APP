@@ -1,53 +1,33 @@
 package com.example.roboranger.ui.components
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun RoboRangerButton(
+    modifier: Modifier = Modifier,
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF4E7029),
-            contentColor = Color.White
-        )
+        enabled = enabled,
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
     ) {
         Text(
             text = text,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-fun RoboRangerButtonIcon(
-    icon: ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF4E7029),
-            contentColor = Color.White
-        )
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(vertical = 10.dp)
         )
     }
 }

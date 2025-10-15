@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.FormatListNumberedRtl
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -38,7 +35,6 @@ import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
 import com.example.roboranger.ui.components.RoboRangerBottomAppBar
-import com.example.roboranger.ui.components.RoboRangerButtonIcon
 import com.example.roboranger.ui.components.RoboRangerFormCard
 import com.example.roboranger.ui.views.form.FormCardViewModel
 object HomeDestination : NavigationDestination {
