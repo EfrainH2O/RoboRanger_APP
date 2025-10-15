@@ -7,15 +7,19 @@ import com.example.roboranger.domain.usecase.GetAuthUseStateUseCase
 import com.example.roboranger.domain.usecase.LogInUseCase
 import com.example.roboranger.domain.usecase.LogOutUseCase
 
-class AuthViewModelFactory(private val apiRepo: ApiRepository) : ViewModelProvider.Factory {
+class AuthViewModelFactory(
+    private val logInUseCase: LogInUseCase,
+    private val logOutUseCase: LogOutUseCase,
+    private val getAuthUseStateUseCase: GetAuthUseStateUseCase
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-            val logInUseCase = LogInUseCase(apiRepo)
-            val logOutUseCase = LogOutUseCase(apiRepo)
-            val getAuthUseStateUseCase = GetAuthUseStateUseCase(apiRepo)
-            @Suppress("UNCHECKED_CAST")
-            return AuthViewModel(logInUseCase, logOutUseCase, getAuthUseStateUseCase) as T
+            return AuthViewModel(logInUseCase,
+                logOutUseCase,
+                getAuthUseStateUseCase
+            ) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }

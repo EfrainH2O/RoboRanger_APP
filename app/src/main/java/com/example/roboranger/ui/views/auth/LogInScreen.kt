@@ -12,14 +12,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +41,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.roboranger.R
+import com.example.roboranger.domain.model.AuthState
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
@@ -53,13 +59,13 @@ object LogInDestination : NavigationDestination {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogInScreen(
-    onSignIn: () -> Unit,
+    authViewModel: AuthViewModel,
     ) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT)
 
     Scaffold() { innerPadding ->
          LogInBody(
-             onSignIn = onSignIn,
+             authViewModel = authViewModel,
              modifier = Modifier
                  .fillMaxSize()
                  .padding(innerPadding)
@@ -70,14 +76,38 @@ fun LogInScreen(
 @Composable
 fun LogInBody(
     modifier: Modifier = Modifier,
-    onSignIn: () -> Unit,
+    authViewModel: AuthViewModel
 ) {
     var userEmail by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var showError by remember { mutableStateOf(false) } // oculta error al editar
+    val authState by authViewModel.authState.collectAsState()
 
-    // Validacion simple para poder habilitar el boton de inicio de sesion
-    val emailValid = remember(userEmail) { "@" in userEmail && "." in userEmail && userEmail.length >= 5 }
-    val enabled = emailValid && password.length >= 15
+    // Validación de email usando patrón del sistema
+    val emailValid = remember(userEmail) {
+        android.util.Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()
+    }
+    val canSubmit = emailValid && password.length >= 5
+    val isLoading = authState is AuthState.Loading
+    val showStateError = (authState is AuthState.Error) && showError
+
+    // Al escribir, si había error, se oculta
+    fun onEmailChange(new: String) {
+        userEmail = new
+        if (showError) showError = false
+    }
+    fun onPasswordChange(new: String) {
+        password = new
+        if (showError) showError = false
+    }
+
+    // Acción de submit
+    fun submitIfPossible() {
+        if (!isLoading && canSubmit) {
+            showError = true // si falla, se mostrará el mensaje del estado
+            authViewModel.signIn(userEmail.trim(), password)
+        }
+    }
 
     Column(
         modifier = modifier
@@ -102,8 +132,9 @@ fun LogInBody(
         RoboRangerTextField(
             label = stringResource(R.string.email_label),
             value = userEmail,
-            onValueChange = { userEmail = it },
+            onValueChange = ::onEmailChange,
             placeholder = stringResource(R.string.placeholder_email),
+            enabled = !isLoading,
             modifier = Modifier.padding(top = 8.dp),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -122,20 +153,40 @@ fun LogInBody(
         RoboRangerPasswordField(
             label = stringResource(R.string.password_label),
             value = password,
-            onValueChange = { password = it },
+            onValueChange = ::onPasswordChange,
             placeholder = stringResource(R.string.placeholder_password),
             modifier = Modifier.padding(top = 8.dp),
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { submitIfPossible() })
         )
         Spacer(Modifier.height(32.dp))
 
-        // Boton de inicio de sesion
-        RoboRangerButton(
-            onClick = onSignIn,
-            enabled = enabled,
-            modifier = Modifier.fillMaxWidth()
-                .padding(vertical = 8.dp),
-            text = stringResource(R.string.login_title)
-        )
+        // Boton de inicio de sesion / cargando
+        if (isLoading) {
+            CircularProgressIndicator()
+        } else {
+            RoboRangerButton(
+                onClick = { submitIfPossible() },
+                enabled = canSubmit && !isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                text = stringResource(R.string.login_title)
+            )
+        }
+
+        // Error si es que existe
+        Spacer(modifier = Modifier.height(8.dp))
+        if (showStateError) {
+            Text(
+                text = (authState as AuthState.Error).message,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         Spacer(Modifier.height(24.dp))
     }
 

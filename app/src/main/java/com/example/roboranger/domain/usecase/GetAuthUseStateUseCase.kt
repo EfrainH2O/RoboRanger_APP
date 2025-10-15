@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.map
 class GetAuthUseStateUseCase(private val repo: ApiRepository) {
     operator fun invoke(): Flow<AuthState> {
         return repo.getAuthToken().map { token ->
-            if (token != null) AuthState.Authenticated else AuthState.Unauthenticated
+            if (!token.isNullOrBlank()) AuthState.Authenticated else AuthState.Unauthenticated
         }
     }
 }

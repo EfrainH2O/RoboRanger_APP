@@ -3,6 +3,8 @@ package com.example.roboranger.ui.components
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
@@ -30,7 +32,9 @@ fun RoboRangerPasswordField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
     var visible by remember { mutableStateOf(false) }
 
@@ -56,6 +60,8 @@ fun RoboRangerPasswordField(
             }
         },
         shape = RoundedCornerShape(8.dp),
-        modifier = modifier.fillMaxWidth().heightIn(min = 36.dp)
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions
     )
 }

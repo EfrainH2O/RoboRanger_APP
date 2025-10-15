@@ -4,10 +4,14 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "auth_prefs")
 
@@ -17,7 +21,7 @@ class TokenManager(private val context: Context) {
     }
 
     val token: Flow<String?> = context.dataStore.data.map { preferences ->
-        preferences[com.example.roboranger.data.local.TokenManager.Companion.TOKEN_KEY]
+        preferences[TOKEN_KEY]
     }
 
     suspend fun saveToken(token: String) {
@@ -28,7 +32,7 @@ class TokenManager(private val context: Context) {
 
     suspend fun deleteToken() {
         context.dataStore.edit { preferences ->
-            preferences.remove(com.example.roboranger.data.local.TokenManager.Companion.TOKEN_KEY)
+            preferences.remove(TOKEN_KEY)
         }
     }
 }
