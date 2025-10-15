@@ -1,13 +1,17 @@
 package com.example.roboranger.ui.views.control
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.roboranger.RetrofitClient
 import com.example.roboranger.StreamClient
+import com.example.roboranger.util.BitmapSaver
 import com.example.roboranger.util.MjpegInputStream
+import com.example.roboranger.util.SaveState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -21,15 +25,18 @@ import kotlinx.coroutines.withContext
 class RobotControlViewModel: ViewModel() {
 
     // -- values
-    private val recivedVideoBitmap = MutableStateFlow<Bitmap?> (null)
-    val videoBitmap = recivedVideoBitmap.asStateFlow()
+    private val receivedVideoBitmap = MutableStateFlow<Bitmap?> (null)
+    val videoBitmap = receivedVideoBitmap.asStateFlow()
     val errorM = mutableStateOf<String?>(null)
+
+    var _savingState = MutableStateFlow<SaveState>(SaveState.Idle)
+    val savingState = _savingState.asStateFlow()
     private val _time_left = MutableStateFlow(10)
-    val time_left = _time_left.asStateFlow()
     val lightState = mutableStateOf(false)
     // -- Jobs
     private var streamingJob: Job? = null
     private var timerJob: Job? = null
+    private var saveFileJob: Job? = null
     // -- Functions
 
     init {
@@ -104,7 +111,7 @@ class RobotControlViewModel: ViewModel() {
                     while(isActive){
                         val bitmap = mjpegInputStream.readMjpegFrame()
                         if(bitmap != null){
-                            recivedVideoBitmap.value = bitmap
+                            receivedVideoBitmap.value = bitmap
                             _time_left.update { 10 }
                         }else{
                             Log.e("streamError", "bitmapNull")
@@ -132,7 +139,7 @@ class RobotControlViewModel: ViewModel() {
     fun stopStreaming(){
         streamingJob?.cancel()
         streamingJob = null
-        recivedVideoBitmap.value = null
+        receivedVideoBitmap.value = null
     }
 
     override fun onCleared() {
@@ -172,6 +179,37 @@ class RobotControlViewModel: ViewModel() {
         }
     }
 
+
+
+    fun takePhoto(context  : Context){
+        val bitmapShot = videoBitmap.value
+        if(bitmapShot == null){
+            Log.d("cameraCapture", "NO IMAGE TO SAVE")
+            Toast.makeText(context, "No image received to save.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (saveFileJob?.isActive == true) {
+            Log.d("cameraCapture", "A save operation is already in progress.")
+            Toast.makeText(context, "Saving in progress...", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        saveFileJob = viewModelScope.launch {
+            _savingState.value = SaveState.Saving
+            val time = System.currentTimeMillis()
+            val disp_image_name = "roboranger_capture_$time.jpg"
+            BitmapSaver.saveBitmap(context, bitmapShot, disp_image_name).collect {
+                state -> _savingState.value = state
+            }
+            Toast.makeText(context, "Imaged Saved", Toast.LENGTH_SHORT).show()
+            delay(100L)
+        }
+    }
+
+    fun resetCameraPhotoState(){
+        _savingState.value = SaveState.Idle
+    }
 
 
 

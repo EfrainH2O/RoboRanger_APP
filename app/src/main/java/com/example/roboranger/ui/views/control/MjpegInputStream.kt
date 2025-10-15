@@ -16,7 +16,6 @@ class MjpegInputStream(inputStream: InputStream) : DataInputStream(BufferedInput
     // Standard JPEG markers
     private val SOI_MARKER = byteArrayOf(0xFF.toByte(), 0xD8.toByte()) // Start of Image
     private val EOI_MARKER = byteArrayOf(0xFF.toByte(), 0xD9.toByte()) // End of Image
-    private val CONTENT_LENGTH = "Content-Length"
 
     companion object {
         private const val FRAME_MAX_LENGTH = 200000 // Increased buffer size (e.g., 200KB)
@@ -117,11 +116,18 @@ class MjpegInputStream(inputStream: InputStream) : DataInputStream(BufferedInput
      * Public method to read the next frame and decode it into a Bitmap.
      */
     @Throws(IOException::class)
-    fun readMjpegFrame(): Bitmap? {
+    fun readMjpegFrame(sampleSize: Int = 1): Bitmap? {
         return try {
             val frameData = readFrameData()
             if (frameData != null) {
-                BitmapFactory.decodeStream(ByteArrayInputStream(frameData))
+                if (sampleSize > 1) {
+                    val options = BitmapFactory.Options().apply {
+                        inSampleSize = sampleSize // e.g., 2 decodes an image half the width and height
+                    }
+                    BitmapFactory.decodeStream(ByteArrayInputStream(frameData), null, options)
+                } else {
+                    BitmapFactory.decodeStream(ByteArrayInputStream(frameData))
+                }
             } else {
                 null
             }
