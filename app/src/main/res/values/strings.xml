@@ -18,6 +18,7 @@
     <string name="photos_icon">Foto</string>
     <string name="flashlight_on_icon">Linterna Encendida</string>
     <string name="flashlight_off_icon">Linterna Apagada</string>
+    <string name="stream_on">Stream</string>
     <string name="show_icon">Mostrar</string>
     <string name="hide_icon">Ocultar</string>
     <string name="roboranger_logo">RoboRanger logo</string>
