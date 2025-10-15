@@ -1,5 +1,6 @@
 package com.example.roboranger.ui.views.home
 
+import android.content.pm.ActivityInfo
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,6 +36,8 @@ import com.example.roboranger.R
 import com.example.roboranger.data.FormCard
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
+import com.example.roboranger.ui.components.LockScreenOrientation
+import com.example.roboranger.ui.components.RoboRangerBottomAppBar
 import com.example.roboranger.ui.components.RoboRangerButtonIcon
 import com.example.roboranger.ui.components.RoboRangerFormCard
 import com.example.roboranger.view_model.FormCardViewModel
@@ -65,6 +68,7 @@ fun HomeScreen(
         }
     }
 
+    LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     //val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
@@ -75,6 +79,11 @@ fun HomeScreen(
                 navigateUp = {},
                 canNavigateSettings = canNavigateSettings,
                 navigateToSettings = onNavigateSettings
+            )
+        },
+        bottomBar = {
+            RoboRangerBottomAppBar(
+                navigateToControl = navigateToControl
             )
         }
     ) { innerPadding ->
@@ -161,6 +170,7 @@ fun HomeBody(
 
         // Botones de navegación
         // Deberian de cambiarse a una bottombar definida
+        /*
         Row() {
             RoboRangerButtonIcon(
                 icon = Icons.Filled.DirectionsCar,
@@ -171,6 +181,7 @@ fun HomeBody(
                 onClick = onNavigateFormDetails
             )
         }
+        */
     }
 }
 
@@ -182,8 +193,8 @@ fun FormsGrid(
 ) {
     LazyVerticalGrid(
         modifier = Modifier
-            .padding(vertical = 16.dp)
-            .fillMaxHeight(0.8F),
+            .padding(top = 16.dp)
+            .fillMaxHeight(1F),
         columns = GridCells.Fixed(1),
     ) {
         items(formList) { form ->
