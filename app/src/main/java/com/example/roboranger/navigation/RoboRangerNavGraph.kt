@@ -16,6 +16,8 @@ import com.example.roboranger.ui.views.form.FormEntryDestination
 import com.example.roboranger.ui.views.form.FormEntryScreen
 import com.example.roboranger.ui.views.home.HomeDestination
 import com.example.roboranger.ui.views.home.HomeScreen
+import com.example.roboranger.ui.views.network.NetworkSearchDestination
+import com.example.roboranger.ui.views.network.NetworkSearchScreen
 import com.example.roboranger.ui.views.settings.SettingsDestination
 import com.example.roboranger.ui.views.settings.SettingsScreen
 
@@ -28,7 +30,7 @@ fun RoboRangerNavHost (
 ) {
     NavHost(
         navController = navController,
-        startDestination = LogInDestination.route,
+        startDestination = NetworkSearchDestination.route,
         modifier = modifier
     ) {
         composable(route = ControlDestination.route) {
@@ -66,6 +68,12 @@ fun RoboRangerNavHost (
         }
         composable(route = LogInDestination.route) {
             LogInScreen(
+                navigateToHome = { navController.navigate(HomeDestination.route) }
+            )
+        }
+        composable(route = NetworkSearchDestination.route) {
+            NetworkSearchScreen(
+                // Pendiente
                 navigateToHome = { navController.navigate(HomeDestination.route) }
             )
         }
