@@ -25,4 +25,7 @@
     <string name="placeholder_email">Introduzca su correo</string>
     <string name="password_label">Contraseña</string>
     <string name="placeholder_password">Introduzca su contraseña</string>
+    <string name="placeholder_username">Usuario</string>
+    <string name="placeholder_user_email">usuario@correo.com</string>
+    <string name="action_logout">Cerrar Sesión</string>
 </resources>

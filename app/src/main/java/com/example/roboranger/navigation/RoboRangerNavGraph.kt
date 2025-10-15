@@ -51,7 +51,8 @@ fun RoboRangerNavHost (
         }
         composable(route = SettingsDestination.route) {
             SettingsScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                authViewModel = authViewModel
             )
         }
         composable(route = HomeDestination.route) {
