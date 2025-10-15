@@ -1,4 +1,4 @@
-package com.example.roboranger.interfaces
+package com.example.roboranger.data.remote
 
 import okhttp3.ResponseBody
 import retrofit2.Call

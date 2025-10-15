@@ -1,6 +1,5 @@
-package com.example.roboranger
+package com.example.roboranger.data.remote
 
-import com.example.roboranger.interfaces.RobotApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

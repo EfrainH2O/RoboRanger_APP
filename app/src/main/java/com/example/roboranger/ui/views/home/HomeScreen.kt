@@ -40,7 +40,7 @@ import com.example.roboranger.ui.components.LockScreenOrientation
 import com.example.roboranger.ui.components.RoboRangerBottomAppBar
 import com.example.roboranger.ui.components.RoboRangerButtonIcon
 import com.example.roboranger.ui.components.RoboRangerFormCard
-import com.example.roboranger.view_model.FormCardViewModel
+import com.example.roboranger.ui.views.form.FormCardViewModel
 object HomeDestination : NavigationDestination {
     override val route = "home"
     override val titleRes = R.string.home_title

@@ -7,8 +7,8 @@ import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.roboranger.RetrofitClient
-import com.example.roboranger.StreamClient
+import com.example.roboranger.data.remote.RetrofitClient
+import com.example.roboranger.data.remote.StreamClient
 import com.example.roboranger.util.BitmapSaver
 import com.example.roboranger.util.MjpegInputStream
 import com.example.roboranger.util.SaveState

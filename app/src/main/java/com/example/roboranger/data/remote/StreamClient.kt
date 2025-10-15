@@ -1,6 +1,5 @@
-package com.example.roboranger
+package com.example.roboranger.data.remote
 
-import com.example.roboranger.interfaces.StreamApi
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit

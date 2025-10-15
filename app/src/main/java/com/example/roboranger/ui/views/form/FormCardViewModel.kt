@@ -1,4 +1,4 @@
-package com.example.roboranger.view_model
+package com.example.roboranger.ui.views.form
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -35,12 +35,30 @@ class FormCardViewModel : ViewModel() {
     // Función temporal para crear datos de prueba
     private fun loadDummyForms() {
         val dummyData = listOf(
-            FormCard(id = 1, place = "Norte de Hogar", date = "2024-09-15", hour = "10:00", status = 0),
+            FormCard(
+                id = 1,
+                place = "Norte de Hogar",
+                date = "2024-09-15",
+                hour = "10:00",
+                status = 0
+            ),
             FormCard(id = 2, place = "Montaña", date = "2024-09-14", hour = "11:00", status = 0),
             FormCard(id = 3, place = "Hogar", date = "2024-09-14", hour = "12:00", status = 1),
             FormCard(id = 4, place = "Parque X", date = "2024-09-12", hour = "13:00", status = 1),
-            FormCard(id = 5, place = "Paraguacutinguimicuaro", date = "2024-09-11", hour = "14:00", status = 0),
-            FormCard(id = 6, place = "Popocatepetl", date = "2024-09-10", hour = "15:00", status = 0)
+            FormCard(
+                id = 5,
+                place = "Paraguacutinguimicuaro",
+                date = "2024-09-11",
+                hour = "14:00",
+                status = 0
+            ),
+            FormCard(
+                id = 6,
+                place = "Popocatepetl",
+                date = "2024-09-10",
+                hour = "15:00",
+                status = 0
+            )
         )
 
         formList.value = dummyData
