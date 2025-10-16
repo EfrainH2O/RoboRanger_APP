@@ -29,4 +29,8 @@
     <string name="placeholder_username">Usuario</string>
     <string name="placeholder_user_email">usuario@correo.com</string>
     <string name="action_logout">Cerrar Sesión</string>
+    <string name="action_pair_robot">Emparejar Robot</string>
+    <string name="network_title">Buscar Robot</string>
+
+
 </resources>

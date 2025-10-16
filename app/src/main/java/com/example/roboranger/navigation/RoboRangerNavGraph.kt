@@ -19,6 +19,7 @@ import com.example.roboranger.ui.views.home.HomeDestination
 import com.example.roboranger.ui.views.home.HomeScreen
 import com.example.roboranger.ui.views.network.NetworkSearchDestination
 import com.example.roboranger.ui.views.network.NetworkSearchScreen
+import com.example.roboranger.ui.views.network.NetworkSearchViewModel
 import com.example.roboranger.ui.views.settings.SettingsDestination
 import com.example.roboranger.ui.views.settings.SettingsScreen
 
@@ -29,6 +30,7 @@ fun RoboRangerNavHost (
     navController: NavHostController,
     controlViewModel: RobotControlViewModel,
     authViewModel: AuthViewModel,
+    networkSearchViewModel: NetworkSearchViewModel,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -54,7 +56,8 @@ fun RoboRangerNavHost (
         composable(route = SettingsDestination.route) {
             SettingsScreen(
                 onNavigateUp = { navController.navigateUp() },
-                authViewModel = authViewModel
+                authViewModel = authViewModel,
+                navigateToNetworkSearch = { navController.navigate(NetworkSearchDestination.route) }
             )
         }
         composable(route = HomeDestination.route) {
@@ -76,7 +79,10 @@ fun RoboRangerNavHost (
         composable(route = NetworkSearchDestination.route) {
             NetworkSearchScreen(
                 // Pendiente
-                navigateToHome = { navController.navigate(HomeDestination.route) }
+                onNavigateUp = { navController.navigateUp() },
+                navigateToHome = { navController.navigate(HomeDestination.route) },
+                networkSearchViewModel = networkSearchViewModel,
+
             )
         }
     }

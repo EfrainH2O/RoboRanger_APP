@@ -1,6 +1,7 @@
 package com.example.roboranger.ui.views.network
 
 import android.Manifest
+import android.content.pm.ActivityInfo
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,19 +27,53 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roboranger.R
 import com.example.roboranger.navigation.NavigationDestination
+import com.example.roboranger.ui.components.LockScreenOrientation
+import com.example.roboranger.ui.components.RoboRangerBottomAppBar
+import com.example.roboranger.ui.components.RoboRangerTopAppBar
+import com.example.roboranger.ui.views.home.HomeBody
+import com.example.roboranger.ui.views.home.HomeDestination
 import kotlinx.coroutines.delay
 
 object NetworkSearchDestination : NavigationDestination {
     override val route = "network_search"
-    override val titleRes = R.string.login_title // Assuming this string resource exists
+    override val titleRes = R.string.network_title
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NetworkSearchScreen(
+    modifier: Modifier = Modifier,
+    onNavigateUp: () -> Unit,
     navigateToHome: () -> Unit,
-    viewModel: NetworkSearchViewModel = viewModel(
-        factory = NetworkSearchViewModelFactory(LocalContext.current.applicationContext)
-    )
+    networkSearchViewModel: NetworkSearchViewModel,
+    canNavigateBack: Boolean = true,
+    canNavigateSettings: Boolean = false,
+) {
+    LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    Scaffold(
+        topBar = {
+            RoboRangerTopAppBar(
+                title = stringResource(HomeDestination.titleRes),
+                canNavigateBack = canNavigateBack,
+                navigateUp = onNavigateUp,
+                canNavigateSettings = canNavigateSettings,
+            )
+        },
+    ) { innerPadding ->
+        NetworkSearchBody(
+            modifier = modifier.padding(innerPadding),
+            navigateToHome = navigateToHome,
+            viewModel = networkSearchViewModel,
+        )
+    }
+}
+@Composable
+fun NetworkSearchBody(
+    modifier: Modifier,
+    navigateToHome: () -> Unit,
+    viewModel: NetworkSearchViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -216,7 +252,7 @@ fun StatusMessage(text: String, icon: androidx.compose.ui.graphics.vector.ImageV
 @Composable
 fun NetworkSearchPreview() {
     MaterialTheme {
-        NetworkSearchScreen(navigateToHome = {})
+
     }
 }
 

@@ -49,6 +49,7 @@ object SettingsDestination : NavigationDestination {
 @Composable
 fun SettingsScreen(
     onNavigateUp: () -> Unit,
+    navigateToNetworkSearch: () -> Unit,
     authViewModel: AuthViewModel,
     canNavigateBack: Boolean = true,
     canNavigateSettings: Boolean = false,
@@ -71,7 +72,8 @@ fun SettingsScreen(
             modifier = Modifier.padding(innerPadding)
                 .verticalScroll(rememberScrollState())
                 .fillMaxWidth(),
-            onLogOut = { authViewModel.signOut() }
+            onLogOut = { authViewModel.signOut() },
+            navigateToNetworkSearch = navigateToNetworkSearch
         )
     }
 }
@@ -79,7 +81,8 @@ fun SettingsScreen(
 @Composable
 fun SettingsBody(
     modifier: Modifier = Modifier,
-    onLogOut: () -> Unit
+    onLogOut: () -> Unit,
+    navigateToNetworkSearch: () -> Unit
 ) {
 
     // Importar directamente username y email del usuario desde DataStore (version antes de SettingsViewModel)
@@ -129,6 +132,25 @@ fun SettingsBody(
             color = Color(0xFF7A7A7A),
             textAlign = TextAlign.Center
         )
+
+        // Boton de Emparejar Robot, navega a vista correspondiente
+        Spacer(Modifier.height(6.dp))
+        Button(
+            onClick = navigateToNetworkSearch,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF4E7029),
+                contentColor = Color.White
+            )
+        ) {
+            Text(
+                text = stringResource(R.string.action_pair_robot),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
 
         // Boton de Cerrar Sesion
         Spacer(Modifier.height(32.dp))

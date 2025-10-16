@@ -26,6 +26,8 @@ import com.example.roboranger.ui.views.auth.AuthViewModelFactory
 import com.example.roboranger.ui.views.auth.LogInDestination
 import com.example.roboranger.ui.views.control.RobotControlViewModel
 import com.example.roboranger.ui.views.home.HomeDestination
+import com.example.roboranger.ui.views.network.NetworkSearchViewModel
+import com.example.roboranger.ui.views.network.NetworkSearchViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +55,8 @@ class MainActivity : ComponentActivity() {
             RoboRangerTheme(darkTheme = false, dynamicColor = false) {
                 val controlViewModel: RobotControlViewModel by viewModels()
                 val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
+                val networkSearchViewModel: NetworkSearchViewModel by viewModels { NetworkSearchViewModelFactory(applicationContext) }
+
 
                 val authState by authViewModel.authState.collectAsStateWithLifecycle()
 
@@ -67,7 +71,8 @@ class MainActivity : ComponentActivity() {
                     RoboRangerApp(
                         startDestination = if (authState is AuthState.Authenticated) HomeDestination.route else LogInDestination.route,
                         controlViewModel = controlViewModel,
-                        authViewModel = authViewModel
+                        authViewModel = authViewModel,
+                        networkSearchViewModel = networkSearchViewModel
                     )
                 }
             }
