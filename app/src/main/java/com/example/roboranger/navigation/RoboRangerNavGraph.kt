@@ -26,7 +26,6 @@ fun RoboRangerNavHost (
     startDestination: String,
     navController: NavHostController,
     controlViewModel: RobotControlViewModel,
-    authViewModel: AuthViewModel,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -52,7 +51,6 @@ fun RoboRangerNavHost (
         composable(route = SettingsDestination.route) {
             SettingsScreen(
                 onNavigateUp = { navController.navigateUp() },
-                authViewModel = authViewModel
             )
         }
         composable(route = HomeDestination.route) {
@@ -69,7 +67,7 @@ fun RoboRangerNavHost (
             )
         }
         composable(route = LogInDestination.route) {
-            LogInScreen(authViewModel = authViewModel)
+            LogInScreen()
         }
     }
 }

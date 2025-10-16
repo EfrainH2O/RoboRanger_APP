@@ -6,11 +6,14 @@ import com.example.roboranger.domain.model.AuthState
 import com.example.roboranger.domain.usecase.GetAuthUseStateUseCase
 import com.example.roboranger.domain.usecase.LogInUseCase
 import com.example.roboranger.domain.usecase.LogOutUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AuthViewModel(
+@HiltViewModel
+class AuthViewModel @Inject constructor(
     private val logInUseCase: LogInUseCase,
     private val logOutUseCase: LogOutUseCase,
     private val getAuthUseStateUseCase: GetAuthUseStateUseCase

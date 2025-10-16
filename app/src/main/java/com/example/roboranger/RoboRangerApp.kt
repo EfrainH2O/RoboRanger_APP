@@ -14,12 +14,10 @@ fun RoboRangerApp(
     navController: NavHostController = rememberNavController(),
     startDestination: String,
     controlViewModel: RobotControlViewModel,
-    authViewModel: AuthViewModel
 ) {
     RoboRangerNavHost(
         navController = navController,
         controlViewModel = controlViewModel,
         startDestination = startDestination,
-        authViewModel = authViewModel
     )
 }
