@@ -1,55 +1,74 @@
 package com.example.roboranger.ui.views.control
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.roboranger.data.remote.RetrofitClient
-import com.example.roboranger.data.remote.StreamClient
-import com.example.roboranger.util.BitmapSaver
-import com.example.roboranger.util.MjpegInputStream
-import com.example.roboranger.util.SaveState
+import com.example.roboranger.domain.model.SaveState
+import com.example.roboranger.domain.usecase.StreamFramesUseCase
+import com.example.roboranger.domain.usecase.control.CapturePhotoUseCase
+import com.example.roboranger.domain.usecase.control.SetLightUseCase
+import com.example.roboranger.domain.usecase.control.StopUseCase
+import com.example.roboranger.domain.usecase.control.TryGoBackUseCase
+import com.example.roboranger.domain.usecase.control.TryGoFrontUseCase
+import com.example.roboranger.domain.usecase.control.TryGoLeftUseCase
+import com.example.roboranger.domain.usecase.control.TryGoRightUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class RobotControlViewModel: ViewModel() {
+@HiltViewModel
+class RobotControlViewModel @Inject constructor(
+    private val tryGoFrontUseCase: TryGoFrontUseCase,
+    private val tryGoBackUseCase: TryGoBackUseCase,
+    private val tryGoLeftUseCase: TryGoLeftUseCase,
+    private val tryGoRightUseCase: TryGoRightUseCase,
+    private val stopUseCase: StopUseCase,
+    private val setLightUseCase: SetLightUseCase,
+    private val streamFrames: StreamFramesUseCase,
+    private val capturePhoto: CapturePhotoUseCase
+): ViewModel() {
 
-    // -- values
-    private val receivedVideoBitmap = MutableStateFlow<Bitmap?> (null)
-    val videoBitmap = receivedVideoBitmap.asStateFlow()
+    // Estados del Stream y UI
+    private val _receivedVideoBitmap = MutableStateFlow<Bitmap?> (null)
+    val videoBitmap = _receivedVideoBitmap.asStateFlow()
     val errorM = mutableStateOf<String?>(null)
 
     var _savingState = MutableStateFlow<SaveState>(SaveState.Idle)
     val savingState = _savingState.asStateFlow()
-    private val _time_left = MutableStateFlow(10)
+
+    private val _timeLeft = MutableStateFlow(10)
     val lightState = mutableStateOf(false)
-    // -- Jobs
+
+    // Jobs
     private var streamingJob: Job? = null
     private var timerJob: Job? = null
     private var saveFileJob: Job? = null
-    // -- Functions
 
     init {
+        // Apagar linterna al iniciar conexion
         viewModelScope.launch(Dispatchers.IO) {
             try{
-                RetrofitClient.api.turnOffLight()
+                setLightUseCase(false)
                 errorM.value = ""
+                lightState.value = false
             }catch (e: Exception){
-                errorM.value = "Error al recibir informacion: ${e.message}"
+                errorM.value = "Error al iniciar control de luz: ${e.message}"
             }
         }
     }
 
+    // Funcion helper para ejecutar comandos de movimiento
     private fun executeRobotCommand(command: suspend () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -65,27 +84,20 @@ class RobotControlViewModel: ViewModel() {
         }
     }
 
-    fun stop() = executeRobotCommand { RetrofitClient.api.robotStop() }
-    fun tryGoFront() = executeRobotCommand { RetrofitClient.api.robotGoFront() }
-    fun tryGoBack() = executeRobotCommand { RetrofitClient.api.robotGoBack() }
-    fun tryGoLeft() = executeRobotCommand { RetrofitClient.api.robotGoLeft() }
-    fun tryGoRight() = executeRobotCommand { RetrofitClient.api.robotGoRight() }
+    // Funciones de movimiento del robot
+    fun stop() = executeRobotCommand { stopUseCase() }
+    fun tryGoFront() = executeRobotCommand { tryGoFrontUseCase() }
+    fun tryGoBack() = executeRobotCommand { tryGoBackUseCase() }
+    fun tryGoLeft() = executeRobotCommand { tryGoLeftUseCase() }
+    fun tryGoRight() = executeRobotCommand { tryGoRightUseCase() }
 
+    // Funcion para controlar el estado de la linterna
     fun toggleLight(){
         viewModelScope.launch {
-
             try{
-                if (!lightState.value){
-                    val l = RetrofitClient.api.turnOnLight()
-                    if(l.isSuccessful){
-                        lightState.value = true
-                    }
-                }else{
-                    val l = RetrofitClient.api.turnOffLight()
-                    if(l.isSuccessful){
-                        lightState.value = false
-                    }
-                }
+                val newState = !lightState.value
+                setLightUseCase(newState)
+                lightState.value = newState
                 errorM.value = ""
             }catch (e: Exception){
                 errorM.value = "Error al recibir informacion: ${e.message}"
@@ -94,52 +106,30 @@ class RobotControlViewModel: ViewModel() {
 
     }
 
-
+    // Funciones de control de streaming
     fun startStreaming(){
-        Log.d("streamDebug", if(streamingJob?.isActive == true) "activo" else "No Activo" )
+        Log.d("streamDebug", if(streamingJob?.isActive == true) "Activo" else "No Activo" )
         if(streamingJob?.isActive == true) return
 
         streamingJob = viewModelScope.launch(Dispatchers.IO) {
             try{
-                val response = StreamClient.api.cameraStream().execute()
-
-                if(response.isSuccessful && response.body() != null){
-                    val inputStream = response.body()!!.byteStream()
-
-                    // Wrap it with our new MJPEG parser
-                    val mjpegInputStream = MjpegInputStream(inputStream)
-                    while(isActive){
-                        val bitmap = mjpegInputStream.readMjpegFrame()
-                        if(bitmap != null){
-                            receivedVideoBitmap.value = bitmap
-                            _time_left.update { 10 }
-                        }else{
-                            Log.e("streamError", "bitmapNull")
-                            break
-                        }
-                    }
-                } else {
-                    // Use postValue when updating LiveData from a background thread.
-                    // For StateFlow, .value is thread-safe.
-                    errorM.value = "Stream request failed: ${response.code()}"
-                    errorM.value?.let { it ->
-                        Log.e("streamError", it)
-                    }
-
+                streamFrames()
+                    .collectLatest { frame ->
+                        _receivedVideoBitmap.value = frame
+                        _timeLeft.update { 10 }
                 }
-
             }catch (e: Exception){
-                Log.e("streamError", e.message ?: "Na" )
+                errorM.value = "Stream request failed: ${e.message}"
+                Log.e("streamError", e.message ?: "Na")
             }
         }
         startTimer()
-
     }
 
     fun stopStreaming(){
         streamingJob?.cancel()
         streamingJob = null
-        receivedVideoBitmap.value = null
+        _receivedVideoBitmap.value = null
     }
 
     override fun onCleared() {
@@ -154,14 +144,13 @@ class RobotControlViewModel: ViewModel() {
             while (isActive) {
                 delay(1000L)
                 // Decrement the timer. Use .update for safe modification.
-                _time_left.update { currentTime -> if (currentTime > 0) currentTime - 1 else 0 }
-
-                if (_time_left.value <= 0) {
+                _timeLeft.update { currentTime -> if (currentTime > 0) currentTime - 1 else 0 }
+                if (_timeLeft.value <= 0) {
                     Log.e("streamError", "Restarting the Stream")
                     // Timer reached zero, restart the stream
                     restartStream()
                     // Reset timer for the next cycle
-                    _time_left.update { 10 }
+                    _timeLeft.update { 10 }
                 }
             }
         }
@@ -180,37 +169,26 @@ class RobotControlViewModel: ViewModel() {
     }
 
 
-
-    fun takePhoto(context  : Context){
-        val bitmapShot = videoBitmap.value
-        if(bitmapShot == null){
-            Log.d("cameraCapture", "NO IMAGE TO SAVE")
-            Toast.makeText(context, "No image received to save.", Toast.LENGTH_SHORT).show()
+    // Funciones de captura de foto
+    fun takePhoto() {
+        val bitmapShot = videoBitmap.value ?: run {
+            errorM.value = "No image received to save."
             return
         }
-
         if (saveFileJob?.isActive == true) {
-            Log.d("cameraCapture", "A save operation is already in progress.")
-            Toast.makeText(context, "Saving in progress...", Toast.LENGTH_SHORT).show()
+            errorM.value = "Saving in progress..."
             return
         }
-
         saveFileJob = viewModelScope.launch {
             _savingState.value = SaveState.Saving
-            val time = System.currentTimeMillis()
-            val disp_image_name = "roboranger_capture_$time.jpg"
-            BitmapSaver.saveBitmap(context, bitmapShot, disp_image_name).collect {
-                state -> _savingState.value = state
+            val name = "roboranger_capture_${System.currentTimeMillis()}.jpg"
+            capturePhoto(bitmapShot, name).collect { state ->
+                _savingState.value = state
             }
-            Toast.makeText(context, "Imaged Saved", Toast.LENGTH_SHORT).show()
-            delay(100L)
         }
     }
 
     fun resetCameraPhotoState(){
         _savingState.value = SaveState.Idle
     }
-
-
-
 }
