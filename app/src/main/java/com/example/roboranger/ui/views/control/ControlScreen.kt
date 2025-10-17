@@ -2,6 +2,7 @@ package com.example.roboranger.ui.views.control
 
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,12 +35,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,16 +49,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.roboranger.R
+import com.example.roboranger.domain.model.SaveState
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
 import com.example.roboranger.ui.components.MovementActionButton
 import com.example.roboranger.ui.components.RoboRangerFAB
 import com.example.roboranger.ui.components.RoboRangerRoundIconButton
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
-import com.example.roboranger.util.SaveState
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 object ControlDestination : NavigationDestination {
     override val route = "control"
@@ -74,64 +72,63 @@ fun ControlScreen(
     onNavigateSettings: () -> Unit,
     canNavigateBack: Boolean = true,
     canNavigateSettings: Boolean = true,
-    controlViewModel: RobotControlViewModel
+    controlViewModel: RobotControlViewModel = hiltViewModel()
 ) {
-
-    val saveState by controlViewModel.savingState.collectAsState()
-
-    DisposableEffect(Unit) {
-        // When the screen appears (is composed)
-        controlViewModel.startStreaming()
-        // When the screen disappears (is disposed)
-        onDispose {
-            controlViewModel.stopStreaming()
-        }
-    }
-
-
-    var loadingBar : @Composable () -> Unit by remember { mutableStateOf({}) }
-    when (saveState){
-        is SaveState.Saving ->{
-            loadingBar = {
-                LinearProgressIndicator(
-                    Modifier.fillMaxWidth()
-                )
-            }
-        }
-        is SaveState.Success ->{
-            loadingBar = {
-                LinearProgressIndicator(
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                rememberCoroutineScope().launch {
-                    delay(1000)
-                    controlViewModel.resetCameraPhotoState()
-                }
-
-            }
-        }
-        is SaveState.Idle ->{
-            loadingBar = {
-                Spacer(Modifier.size(6.dp))
-            }
-        }
-        else -> {
-            loadingBar = {}
-        }
-
-    }
-
-
-
-
-
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
+
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    var flashlightState by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    // Streams de estado del viewModel
+    val saveState by controlViewModel.savingState.collectAsState()
+    val frameBitmap by controlViewModel.videoBitmap.collectAsState()
+    val flashlightOn by remember { controlViewModel.lightState } // mutableState<Boolean>
+    val vmError by remember { controlViewModel.errorM }           // mutableState<String?>
+
+    // Arrancar / detener streaming con el ciclo de la pantalla
+    DisposableEffect(Unit) {
+        controlViewModel.startStreaming()
+        onDispose { controlViewModel.stopStreaming() }
+    }
+
+    // Toasts por estados de guardado (éxito y error)
+    LaunchedEffect(saveState) {
+        when (val s = saveState) {
+            is SaveState.Success -> {
+                Toast.makeText(context, s.msg, Toast.LENGTH_SHORT).show()
+                // regresar a Idle tras un pequeño delay para limpiar la barra
+                kotlinx.coroutines.delay(1000)
+                controlViewModel.resetCameraPhotoState()
+            }
+            is SaveState.Error -> {
+                Toast.makeText(context, s.errorMsg, Toast.LENGTH_SHORT).show()
+                controlViewModel.resetCameraPhotoState()
+            }
+            else -> Unit
+        }
+    }
+
+    // Toasts por errores generales del viewModel
+    LaunchedEffect(vmError) {
+        val msg = vmError ?: ""
+        if (msg.isNotBlank()) {
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Header: TopBar + barra de progreso si está guardando
+    val loadingBar: @Composable () -> Unit = when (saveState) {
+        SaveState.Saving -> {
+            { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        }
+        SaveState.Idle, is SaveState.Success, is SaveState.Error -> {
+            { Spacer(Modifier.size(6.dp)) }
+        }
+        else -> { { } }
+    }
 
     Scaffold(
         topBar = {
-
             Column {
                 RoboRangerTopAppBar(
                     title = stringResource(ControlDestination.titleRes),
@@ -143,8 +140,6 @@ fun ControlScreen(
                 )
                 loadingBar()
             }
-
-
         },
         floatingActionButton = {
             RoboRangerFAB(
@@ -157,8 +152,8 @@ fun ControlScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxWidth(),
-            flashlightState = flashlightState,
-            toggleFlashlight = { flashlightState = !flashlightState },
+            flashlightOn = flashlightOn,
+            toggleFlashlight = { controlViewModel.toggleLight() },
             controlViewModel = controlViewModel
         )
     }
@@ -169,7 +164,7 @@ fun ControlScreen(
 @Composable
 fun ControlBody(
     modifier: Modifier = Modifier,
-    flashlightState: Boolean,
+    flashlightOn: Boolean,
     toggleFlashlight: () -> Unit,
     controlViewModel: RobotControlViewModel
 ) {
@@ -195,7 +190,7 @@ fun ControlBody(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxSize(),
-            flashlightState = flashlightState,
+            flashlightOn = flashlightOn,
             toggleFlashlight = toggleFlashlight,
             controlViewModel = controlViewModel
         )
@@ -312,7 +307,7 @@ private fun CenterVideo(
 @Composable
 private fun RightActions(
     modifier: Modifier = Modifier,
-    flashlightState: Boolean,
+    flashlightOn: Boolean,
     toggleFlashlight: () -> Unit,
     controlViewModel: RobotControlViewModel
 ) {
@@ -329,18 +324,18 @@ private fun RightActions(
         )
         RoboRangerRoundIconButton(
             icon = Icons.Filled.PhotoCamera,
-            action = {controlViewModel.takePhoto(context) },
+            action = { controlViewModel.takePhoto() },
             label = stringResource(R.string.photos_icon)
         )
         RoboRangerRoundIconButton(
-            icon = if (flashlightState) Icons.Filled.FlashlightOff else Icons.Filled.FlashlightOn,
+            icon = if (flashlightOn) Icons.Filled.FlashlightOff else Icons.Filled.FlashlightOn,
             action = {
                 toggleFlashlight()
                 controlViewModel.toggleLight()
              },
-            label = stringResource(if (flashlightState) R.string.flashlight_on_icon else R.string.flashlight_off_icon),
-            containerColor = if (flashlightState) Color.White else Color(0xFF4E7029),
-            contentColor = if (flashlightState) Color(0xFF4E7029) else Color.White
+            label = stringResource(if (flashlightOn) R.string.flashlight_on_icon else R.string.flashlight_off_icon),
+            containerColor = if (flashlightOn) Color.White else Color(0xFF4E7029),
+            contentColor = if (flashlightOn) Color(0xFF4E7029) else Color.White
         )
     }
 }

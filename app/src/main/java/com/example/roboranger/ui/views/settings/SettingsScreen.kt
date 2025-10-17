@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.roboranger.R
 import com.example.roboranger.data.local.TokenManager
@@ -49,8 +50,7 @@ object SettingsDestination : NavigationDestination {
 @Composable
 fun SettingsScreen(
     onNavigateUp: () -> Unit,
-    navigateToNetworkSearch: () -> Unit,
-    authViewModel: AuthViewModel,
+    authViewModel: AuthViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
     canNavigateSettings: Boolean = false,
 ) {

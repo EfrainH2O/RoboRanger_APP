@@ -1,23 +1,16 @@
-package com.example.roboranger.util
+package com.example.roboranger.ui.views.control
 
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.provider.MediaStore
+import com.example.roboranger.domain.model.SaveState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import okio.IOException
 import java.io.OutputStream
-
-
-sealed class SaveState{
-    object Idle: SaveState()
-    object Saving: SaveState()
-    data class Success(val msg: String): SaveState()
-    data class Error (val errorMsg : String ): SaveState()
-}
 
 object BitmapSaver {
     fun saveBitmap(context: Context, bitmap: Bitmap, displayName: String) : Flow<SaveState> = flow{

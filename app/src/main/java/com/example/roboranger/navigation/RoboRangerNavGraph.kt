@@ -5,12 +5,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.example.roboranger.ui.views.auth.AuthViewModel
 import com.example.roboranger.ui.views.auth.LogInDestination
 import com.example.roboranger.ui.views.auth.LogInScreen
 import com.example.roboranger.ui.views.control.ControlDestination
 import com.example.roboranger.ui.views.control.ControlScreen
-import com.example.roboranger.ui.views.control.RobotControlViewModel
 import com.example.roboranger.ui.views.form.FormDetailsDestination
 import com.example.roboranger.ui.views.form.FormDetailsScreen
 import com.example.roboranger.ui.views.form.FormEntryDestination
@@ -28,9 +26,6 @@ import com.example.roboranger.ui.views.settings.SettingsScreen
 fun RoboRangerNavHost (
     startDestination: String,
     navController: NavHostController,
-    controlViewModel: RobotControlViewModel,
-    authViewModel: AuthViewModel,
-    networkSearchViewModel: NetworkSearchViewModel,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -43,7 +38,6 @@ fun RoboRangerNavHost (
                 onNavigateUp = { navController.navigateUp() },
                 navigateToFormEntry = { navController.navigate(FormEntryDestination.route) },
                 onNavigateSettings = { navController.navigate(SettingsDestination.route) },
-                controlViewModel = controlViewModel
             )
         }
         composable(route = FormEntryDestination.route) {
@@ -56,8 +50,6 @@ fun RoboRangerNavHost (
         composable(route = SettingsDestination.route) {
             SettingsScreen(
                 onNavigateUp = { navController.navigateUp() },
-                authViewModel = authViewModel,
-                navigateToNetworkSearch = { navController.navigate(NetworkSearchDestination.route) }
             )
         }
         composable(route = HomeDestination.route) {
@@ -74,7 +66,7 @@ fun RoboRangerNavHost (
             )
         }
         composable(route = LogInDestination.route) {
-            LogInScreen(authViewModel = authViewModel)
+            LogInScreen()
         }
         composable(route = NetworkSearchDestination.route) {
             NetworkSearchScreen(
