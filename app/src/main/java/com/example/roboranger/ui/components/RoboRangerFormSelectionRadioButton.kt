@@ -60,7 +60,7 @@ fun RoboRangerFormSelectionRadioButton(
 @Composable
 private fun RoboRangerFormSelectionRadioButtonSelectedPreview() {
     RoboRangerFormSelectionRadioButton(
-        text = "Opción Seleccionada",
+        text = "",
         selected = true,
         onClick = {},
         modifier = Modifier.padding(horizontal = 16.dp)
@@ -71,7 +71,7 @@ private fun RoboRangerFormSelectionRadioButtonSelectedPreview() {
 @Composable
 private fun RoboRangerFormSelectionRadioButtonNotSelectedPreview() {
     RoboRangerFormSelectionRadioButton(
-        text = "Opción No Seleccionada",
+        text = "",
         selected = false,
         onClick = {},
         modifier = Modifier.padding(horizontal = 16.dp)
@@ -91,7 +91,7 @@ fun SelectableCardVertical(
         modifier = modifier
             .clickable(onClick = onClick)
             .border(
-                width = 150.dp,
+                width = 2.dp,
                 color = if (selected) Color(0xFF4CAF50) else Color(0xFFCCCCCC),
                 shape = RoundedCornerShape(16.dp)
             )
