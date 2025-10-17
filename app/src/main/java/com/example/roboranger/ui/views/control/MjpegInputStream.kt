@@ -1,6 +1,4 @@
-// In your MjpegInputStream.kt file
-
-package com.example.roboranger.util // Or your correct package
+package com.example.roboranger.ui.views.control
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
