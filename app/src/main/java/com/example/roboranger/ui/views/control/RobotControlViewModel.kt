@@ -119,7 +119,6 @@ class RobotControlViewModel @Inject constructor(
                         _timeLeft.update { 10 }
                 }
             }catch (e: Exception){
-                errorM.value = "Stream request failed: ${e.message}"
                 Log.e("streamError", e.message ?: "Na")
             }
         }
@@ -149,7 +148,7 @@ class RobotControlViewModel @Inject constructor(
                     Log.e("streamError", "Restarting the Stream")
                     // Timer reached zero, restart the stream
                     restartStream()
-                    // Reset timer for the next cycle
+                    //streamError Reset timer for the next cycle
                     _timeLeft.update { 10 }
                 }
             }
