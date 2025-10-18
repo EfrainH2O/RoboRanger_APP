@@ -50,6 +50,7 @@ object SettingsDestination : NavigationDestination {
 @Composable
 fun SettingsScreen(
     onNavigateUp: () -> Unit,
+    navigateToNetworkSearch : () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
     canNavigateSettings: Boolean = false,

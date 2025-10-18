@@ -18,7 +18,6 @@ import com.example.roboranger.ui.views.auth.AuthViewModel
 import com.example.roboranger.ui.views.auth.LogInDestination
 import com.example.roboranger.ui.views.home.HomeDestination
 import com.example.roboranger.ui.views.network.NetworkSearchViewModel
-import com.example.roboranger.ui.views.network.NetworkSearchViewModelFactory
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

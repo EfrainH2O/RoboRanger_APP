@@ -17,22 +17,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roboranger.R
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
-import com.example.roboranger.ui.components.RoboRangerBottomAppBar
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
-import com.example.roboranger.ui.views.home.HomeBody
 import com.example.roboranger.ui.views.home.HomeDestination
 import kotlinx.coroutines.delay
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 object NetworkSearchDestination : NavigationDestination {
     override val route = "network_search"
@@ -44,8 +41,8 @@ object NetworkSearchDestination : NavigationDestination {
 fun NetworkSearchScreen(
     modifier: Modifier = Modifier,
     onNavigateUp: () -> Unit,
+    viewModel: NetworkSearchViewModel = hiltViewModel(),
     navigateToHome: () -> Unit,
-    networkSearchViewModel: NetworkSearchViewModel,
     canNavigateBack: Boolean = true,
     canNavigateSettings: Boolean = false,
 ) {
@@ -65,7 +62,7 @@ fun NetworkSearchScreen(
         NetworkSearchBody(
             modifier = modifier.padding(innerPadding),
             navigateToHome = navigateToHome,
-            viewModel = networkSearchViewModel,
+            viewModel = viewModel
         )
     }
 }
@@ -255,4 +252,3 @@ fun NetworkSearchPreview() {
 
     }
 }
-

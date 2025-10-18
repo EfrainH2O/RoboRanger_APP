@@ -50,6 +50,7 @@ fun RoboRangerNavHost (
         composable(route = SettingsDestination.route) {
             SettingsScreen(
                 onNavigateUp = { navController.navigateUp() },
+                navigateToNetworkSearch = { navController.navigate(NetworkSearchDestination.route) }
             )
         }
         composable(route = HomeDestination.route) {
@@ -73,7 +74,7 @@ fun RoboRangerNavHost (
                 // Pendiente
                 onNavigateUp = { navController.navigateUp() },
                 navigateToHome = { navController.navigate(HomeDestination.route) },
-                networkSearchViewModel = networkSearchViewModel,
+
 
             )
         }

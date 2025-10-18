@@ -1,8 +1,9 @@
 package com.example.roboranger.ui.views.network
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,8 +18,6 @@ sealed interface ConnectionState {
     data class Error(val message: String) : ConnectionState
 }
 
-// --- CORRECTION: ADD STATE FOR OPEN NETWORKS ---
-// The state now includes a boolean to track if the network is open (no password).
 data class NetworkSearchUiState(
     val networkName: String = "",
     val password: String = "",
@@ -26,12 +25,14 @@ data class NetworkSearchUiState(
     val connectionState: ConnectionState = ConnectionState.Idle
 )
 
-class NetworkSearchViewModel(context: Context) : ViewModel() {
+@HiltViewModel
+class NetworkSearchViewModel @Inject constructor(
+    private val repository: WifiConnectionRepository // Now depends on the interface
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NetworkSearchUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val repository = WifiConnectionRepository(context)
     private var connectionJob: Job? = null
 
     fun onNetworkNameChange(newName: String) {
@@ -42,18 +43,13 @@ class NetworkSearchViewModel(context: Context) : ViewModel() {
         _uiState.update { it.copy(password = newPassword) }
     }
 
-    // --- NEW: HANDLER FOR OPEN NETWORK STATE ---
     fun onOpenNetworkChange(isOpen: Boolean) {
-        // Clear password if user marks network as open
         _uiState.update { it.copy(isOpenNetwork = isOpen, password = if (isOpen) "" else it.password) }
     }
-
 
     fun searchAndConnect() {
         if (_uiState.value.connectionState is ConnectionState.Searching) return
 
-        // --- CORRECTION: UPDATED VALIDATION LOGIC ---
-        // Now, it only requires a password if the network is not marked as open.
         val isInvalid = _uiState.value.networkName.isBlank() ||
                 (!_uiState.value.isOpenNetwork && _uiState.value.password.isBlank())
 
@@ -65,7 +61,6 @@ class NetworkSearchViewModel(context: Context) : ViewModel() {
         connectionJob?.cancel()
 
         val nameToSearch = _uiState.value.networkName
-        // Send an empty string for the password if it's an open network
         val robotPassword = if (_uiState.value.isOpenNetwork) "" else _uiState.value.password
 
         viewModelScope.launch {
@@ -84,7 +79,6 @@ class NetworkSearchViewModel(context: Context) : ViewModel() {
     private fun monitorConnection(expectedSsid: String) {
         connectionJob = viewModelScope.launch {
             repository.observeCurrentWifiConnection().collectLatest { currentSsid ->
-                // Ensure the connected SSID matches exactly, removing quotes
                 if (currentSsid?.removeSurrounding("\"") == expectedSsid) {
                     _uiState.update { it.copy(connectionState = ConnectionState.Connected(expectedSsid)) }
                     connectionJob?.cancel()
@@ -101,8 +95,6 @@ class NetworkSearchViewModel(context: Context) : ViewModel() {
 
     fun resetSearch() {
         connectionJob?.cancel()
-        // Reset all fields, including the new isOpenNetwork flag
         _uiState.update { NetworkSearchUiState() }
     }
 }
-
