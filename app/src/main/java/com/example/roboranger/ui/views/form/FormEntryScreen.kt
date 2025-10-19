@@ -21,6 +21,8 @@ import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
 import com.example.roboranger.ui.components.RoboRangerButton
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.roboranger.ui.theme.RoboRangerTheme
 
 object FormEntryDestination : NavigationDestination {
     override val route = "form_entry"
@@ -76,6 +78,28 @@ fun FormEntryBody(
         RoboRangerButton(
             text = "Guardar Formulario",
             onClick = onNavigateHome
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FormEntryScreenPreview() {
+    RoboRangerTheme {
+        FormEntryScreen(
+            onNavigateUp = {},
+            onNavigateSettings = {},
+            navigateToHome = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FormEntryBodyPreview() {
+    RoboRangerTheme {
+        FormEntryBody(
+            onNavigateHome = {}
         )
     }
 }
