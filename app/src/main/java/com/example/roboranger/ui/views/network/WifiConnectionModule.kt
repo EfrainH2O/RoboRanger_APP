@@ -1,7 +1,5 @@
-package com.example.roboranger.di
+package com.example.roboranger.ui.views.network
 
-import com.example.roboranger.ui.views.network.WifiConnectionRepository
-import com.example.roboranger.ui.views.network.WifiConnectionRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

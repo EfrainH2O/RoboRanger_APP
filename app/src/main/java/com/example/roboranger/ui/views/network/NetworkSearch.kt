@@ -31,6 +31,7 @@ import com.example.roboranger.ui.views.home.HomeDestination
 import kotlinx.coroutines.delay
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
+
 object NetworkSearchDestination : NavigationDestination {
     override val route = "network_search"
     override val titleRes = R.string.network_title
@@ -90,7 +91,7 @@ fun NetworkSearchBody(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (isGranted) {
-                viewModel.searchAndConnect()
+                viewModel.onSearchClicked()
             } else {
                 viewModel.onPermissionDenied()
             }
@@ -101,7 +102,7 @@ fun NetworkSearchBody(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         } else {
-            viewModel.searchAndConnect()
+            viewModel.onSearchClicked()
         }
     }
 
@@ -165,7 +166,7 @@ fun NetworkSearchBody(
         ) {
             Checkbox(
                 checked = uiState.isOpenNetwork,
-                onCheckedChange = viewModel::onOpenNetworkChange,
+                onCheckedChange = viewModel::onIsOpenNetworkChange,
                 enabled = uiState.connectionState !is ConnectionState.Searching,
                 colors = CheckboxDefaults.colors(
                     checkedColor = primaryGreen

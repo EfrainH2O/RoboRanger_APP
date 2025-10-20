@@ -17,7 +17,6 @@ import com.example.roboranger.ui.views.home.HomeDestination
 import com.example.roboranger.ui.views.home.HomeScreen
 import com.example.roboranger.ui.views.network.NetworkSearchDestination
 import com.example.roboranger.ui.views.network.NetworkSearchScreen
-import com.example.roboranger.ui.views.network.NetworkSearchViewModel
 import com.example.roboranger.ui.views.settings.SettingsDestination
 import com.example.roboranger.ui.views.settings.SettingsScreen
 
