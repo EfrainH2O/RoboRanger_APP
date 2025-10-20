@@ -39,7 +39,12 @@ import com.example.roboranger.R
 import com.example.roboranger.data.local.TokenManager
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
+import com.example.roboranger.ui.components.RoboRangerLastConnectionCard
 import com.example.roboranger.ui.views.auth.AuthViewModel
+import com.example.roboranger.ui.views.network.NetworkSearchViewModel
+import androidx.compose.runtime.collectAsState
+import com.example.roboranger.ui.components.ReconnectDialog
+import com.example.roboranger.domain.ConnectionState
 
 object SettingsDestination : NavigationDestination {
     override val route = "settings"
@@ -50,11 +55,21 @@ object SettingsDestination : NavigationDestination {
 @Composable
 fun SettingsScreen(
     onNavigateUp: () -> Unit,
+    navigateToNetworkSearch : () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel(),
+    networkSearchViewModel: NetworkSearchViewModel  = hiltViewModel(),
     canNavigateBack: Boolean = true,
     canNavigateSettings: Boolean = false,
 ) {
+
+    val networkUiState by networkSearchViewModel.uiState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    // The dialog is now part of the screen, and its visibility is controlled by the ViewModel state.
+    ReconnectDialog(
+        status = networkUiState.reconnectionStatus,
+        onDismiss = { networkSearchViewModel.dismissReconnectDialog() }
+    )
 
     Scaffold(
         topBar = {
@@ -72,7 +87,8 @@ fun SettingsScreen(
             modifier = Modifier.padding(innerPadding)
                 .verticalScroll(rememberScrollState())
                 .fillMaxWidth(),
-            onLogOut = { authViewModel.signOut() }
+            onLogOut = { authViewModel.signOut() },
+            navigateToNetworkSearch = navigateToNetworkSearch
         )
     }
 }
@@ -80,7 +96,9 @@ fun SettingsScreen(
 @Composable
 fun SettingsBody(
     modifier: Modifier = Modifier,
-    onLogOut: () -> Unit
+    onLogOut: () -> Unit,
+    networkSearchViewModel: NetworkSearchViewModel = hiltViewModel(),
+    navigateToNetworkSearch: () -> Unit
 ) {
 
     // Importar directamente username y email del usuario desde DataStore (version antes de SettingsViewModel)
@@ -131,8 +149,54 @@ fun SettingsBody(
             textAlign = TextAlign.Center
         )
 
+        val networkUiState by networkSearchViewModel.uiState.collectAsState()
+        val connectedDeviceName = (networkUiState.connectionState as? ConnectionState.Connected)?.deviceName
+        val isConnectedToLastSsid = connectedDeviceName == networkUiState.lastConnectedSsid
+
+        Spacer(Modifier.height(20.dp))
+
+        // Only show the card if there is a saved network
+        if (networkUiState.lastConnectedSsid.isNotBlank()) {
+            val descriptor = if (isConnectedToLastSsid) {
+                "Robot Conectado"
+            } else {
+                "Último Robot Conectado"
+            }
+
+            // Use the new and improved card component
+            RoboRangerLastConnectionCard(
+                lastSsid = networkUiState.lastConnectedSsid,
+                descriptor = descriptor,
+                isConnected = isConnectedToLastSsid,
+                onConnectClicked = { networkSearchViewModel.reconnectToLastNetwork() },
+                onDisconnectClicked = { networkSearchViewModel.disconnect() }
+            )
+        }
+
+        // Boton de Emparejar Robot, navega a vista correspondiente
+        Spacer(Modifier.height(20.dp))
+        Button(
+            onClick = {
+                networkSearchViewModel.disconnect()
+                navigateToNetworkSearch()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF4E7029),
+                contentColor = Color.White
+            )
+        ) {
+            Text(
+                text = stringResource(R.string.action_pair_robot),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
         // Boton de Cerrar Sesion
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(20.dp))
         Button(
             onClick = onLogOut,
             modifier = Modifier
