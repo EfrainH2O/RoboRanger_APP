@@ -408,7 +408,8 @@ fun LocationSetUp(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.8f)
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
         ){
             with(viewState.value ) {
                 when (this) {
@@ -424,7 +425,7 @@ fun LocationSetUp(
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("We need permissions to use this app")
+                            Text("We need permissions to use show location")
                         }
                     }
 
