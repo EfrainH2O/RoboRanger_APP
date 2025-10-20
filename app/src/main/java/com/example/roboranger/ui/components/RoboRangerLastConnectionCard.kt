@@ -6,24 +6,30 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.roboranger.ui.theme.PrimaryBlack
-import com.example.roboranger.ui.theme.PrimaryBushGreen
-import com.example.roboranger.ui.theme.PrimaryGrassGreen
+import com.example.roboranger.ui.theme.PrimaryLightGreen
 import com.example.roboranger.ui.theme.PrimaryRed
 import com.example.roboranger.ui.theme.PrimaryWhite
+import com.example.roboranger.ui.theme.SecondaryGrassGreen
+import com.example.roboranger.ui.theme.SecondaryLightGreen
 
 /**
  * A card that displays information about the last used network and provides
@@ -48,7 +54,10 @@ fun RoboRangerLastConnectionCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            if (isConnected) PrimaryLightGreen else SecondaryLightGreen,
+        )
     ) {
         Box(
             modifier = Modifier
@@ -61,43 +70,54 @@ fun RoboRangerLastConnectionCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(
-                    modifier = Modifier,
+                    modifier = Modifier
+                        .weight(1f),
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
                         text = descriptor,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleSmall,
+                        color = PrimaryBlack,
+                        fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = lastSsid,
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = PrimaryBlack,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
-                Spacer(modifier = Modifier.padding(horizontal = 24.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
                 // The button is now always visible, but its text, color, and action change.
                 if (isConnected) {
-                    Button(
+                    IconButton(
                         modifier = Modifier,
                         onClick = onDisconnectClicked,
-                        colors = ButtonDefaults.buttonColors(
+                        colors = IconButtonDefaults.iconButtonColors(
                             containerColor = PrimaryRed,
                             contentColor = PrimaryBlack
                         )
                     ) {
-                        Text("Desconectar")
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.WifiOff,
+                            contentDescription = "Disconnect"
+                        )
                     }
                 } else {
-                    Button(
+                    IconButton(
                         modifier = Modifier,
                         onClick = onConnectClicked,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = PrimaryBushGreen,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = SecondaryGrassGreen,
                             contentColor = PrimaryWhite
                         )
                     ) {
-                        Text("Reconectar")
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Default.Wifi,
+                            contentDescription = "Reconnect"
+                        )
                     }
                 }
             }

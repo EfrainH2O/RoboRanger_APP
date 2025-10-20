@@ -2,7 +2,6 @@ package com.example.roboranger.ui.views.network
 
 import android.Manifest
 import android.content.pm.ActivityInfo
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,17 +17,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roboranger.R
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
-import com.example.roboranger.ui.views.home.HomeDestination
 import kotlinx.coroutines.delay
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.roboranger.domain.ConnectionState
+import com.example.roboranger.ui.components.RoboRangerPasswordField
+import com.example.roboranger.ui.components.RoboRangerTextField
+import com.example.roboranger.ui.theme.PrimaryBlack
+import com.example.roboranger.ui.theme.PrimaryBushGreen
+import com.example.roboranger.ui.theme.PrimaryDarkGreen
+import com.example.roboranger.ui.theme.PrimaryGrassGreen
 
 
 object NetworkSearchDestination : NavigationDestination {
@@ -43,17 +45,15 @@ fun NetworkSearchScreen(
     modifier: Modifier = Modifier,
     onNavigateUp: () -> Unit,
     viewModel: NetworkSearchViewModel = hiltViewModel(),
-    navigateToHome: () -> Unit,
     canNavigateBack: Boolean = true,
     canNavigateSettings: Boolean = false,
 ) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
         topBar = {
             RoboRangerTopAppBar(
-                title = stringResource(HomeDestination.titleRes),
+                title = stringResource(NetworkSearchDestination.titleRes),
                 canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp,
                 canNavigateSettings = canNavigateSettings,
@@ -62,7 +62,7 @@ fun NetworkSearchScreen(
     ) { innerPadding ->
         NetworkSearchBody(
             modifier = modifier.padding(innerPadding),
-            navigateToHome = navigateToHome,
+            navigate = onNavigateUp,
             viewModel = viewModel
         )
     }
@@ -70,20 +70,15 @@ fun NetworkSearchScreen(
 @Composable
 fun NetworkSearchBody(
     modifier: Modifier,
-    navigateToHome: () -> Unit,
+    navigate: () -> Unit,
     viewModel: NetworkSearchViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // --- COLOR PALETTE DEFINITION ---
-    val primaryGreen = Color(0xFF81C784) // A pleasant, medium green
-    val darkGreenText = Color(0xFF388E3C) // A darker green for success text
-    val darkCharcoal = Color(0xFF333333) // Dark text color for readability
-
     LaunchedEffect(uiState.connectionState) {
         if (uiState.connectionState is ConnectionState.Connected) {
             delay(1500)
-            navigateToHome()
+            navigate()
         }
     }
 
@@ -91,7 +86,7 @@ fun NetworkSearchBody(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (isGranted) {
-                viewModel.onSearchClicked()
+                viewModel.connect()
             } else {
                 viewModel.onPermissionDenied()
             }
@@ -99,11 +94,7 @@ fun NetworkSearchBody(
     )
 
     val searchAction = {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        } else {
-            viewModel.onSearchClicked()
-        }
+        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
     Column(
@@ -114,47 +105,29 @@ fun NetworkSearchBody(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Connect to a Robot",
+            modifier = Modifier.padding(bottom = 24.dp),
+            text = "Conecta un Robot",
             style = MaterialTheme.typography.headlineMedium,
-            color = darkCharcoal,
-            modifier = Modifier.padding(bottom = 24.dp)
+            fontWeight = FontWeight.SemiBold,
+            color = PrimaryBlack,
         )
 
-        OutlinedTextField(
+        RoboRangerTextField(
+            label = "Nombre (SSID)",
             value = uiState.networkName,
             onValueChange = viewModel::onNetworkNameChange,
-            label = { Text("Robot Name (SSID)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            enabled = uiState.connectionState !is ConnectionState.Searching,
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = primaryGreen,
-                focusedLabelColor = primaryGreen,
-                cursorColor = primaryGreen,
-                unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent
-            )
+            placeholder = "Introduce el nombre (SSID) de la red",
+
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         AnimatedVisibility(visible = !uiState.isOpenNetwork) {
-            OutlinedTextField(
+            RoboRangerPasswordField(
+                label = "Contraseña",
                 value = uiState.password,
                 onValueChange = viewModel::onPasswordChange,
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                enabled = uiState.connectionState !is ConnectionState.Searching,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = primaryGreen,
-                    focusedLabelColor = primaryGreen,
-                    cursorColor = primaryGreen,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent
-                )
+                placeholder = "Introduce la contraseña de la red"
             )
         }
 
@@ -166,13 +139,13 @@ fun NetworkSearchBody(
         ) {
             Checkbox(
                 checked = uiState.isOpenNetwork,
-                onCheckedChange = viewModel::onIsOpenNetworkChange,
+                onCheckedChange = viewModel::onOpenNetworkChecked,
                 enabled = uiState.connectionState !is ConnectionState.Searching,
                 colors = CheckboxDefaults.colors(
-                    checkedColor = primaryGreen
+                    checkedColor = PrimaryBushGreen
                 )
             )
-            Text(text = "This is an open network (no password)")
+            Text(text = "Es una red abierta (sin contraseña)")
         }
 
 
@@ -188,14 +161,14 @@ fun NetworkSearchBody(
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState.connectionState !is ConnectionState.Searching,
             colors = ButtonDefaults.buttonColors(
-                containerColor = primaryGreen,
+                containerColor = PrimaryBushGreen,
                 contentColor = Color.White
             )
         ) {
             val buttonText = when (uiState.connectionState) {
-                is ConnectionState.Connected -> "Search for another"
-                is ConnectionState.Error -> "Try Again"
-                else -> "Search & Connect"
+                is ConnectionState.Connected -> "Buscar y Conectar"
+                is ConnectionState.Error -> "Reintentar"
+                else -> "Buscar y Conectar"
             }
             Icon(imageVector = Icons.Default.Search, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
             Text(buttonText)
@@ -207,15 +180,15 @@ fun NetworkSearchBody(
             when (val state = uiState.connectionState) {
                 is ConnectionState.Searching -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = primaryGreen)
-                        Text("Searching...", modifier = Modifier.padding(top = 8.dp))
+                        CircularProgressIndicator(color = PrimaryGrassGreen)
+                        Text("Buscando...", modifier = Modifier.padding(top = 8.dp))
                     }
                 }
                 is ConnectionState.Connected -> {
                     StatusMessage(
-                        text = "Successfully connected to ${state.deviceName}!",
+                        text = "Se conectó exitosamente a ${state.deviceName}!",
                         icon = Icons.Default.CheckCircle,
-                        color = darkGreenText
+                        color = PrimaryDarkGreen
                     )
                 }
                 is ConnectionState.Error -> {
@@ -226,7 +199,7 @@ fun NetworkSearchBody(
                     )
                 }
                 is ConnectionState.Idle -> {
-                    Text("Enter robot name to begin.")
+                    Text("Enlaza un robot para iniciar.")
                 }
             }
         }
@@ -243,13 +216,5 @@ fun StatusMessage(text: String, icon: androidx.compose.ui.graphics.vector.ImageV
         Icon(imageVector = icon, contentDescription = null, tint = color)
         Spacer(modifier = Modifier.width(8.dp))
         Text(text = text, color = color, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun NetworkSearchPreview() {
-    MaterialTheme {
-
     }
 }

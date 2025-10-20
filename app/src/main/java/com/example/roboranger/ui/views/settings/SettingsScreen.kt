@@ -44,7 +44,7 @@ import com.example.roboranger.ui.views.auth.AuthViewModel
 import com.example.roboranger.ui.views.network.NetworkSearchViewModel
 import androidx.compose.runtime.collectAsState
 import com.example.roboranger.ui.components.ReconnectDialog
-import com.example.roboranger.ui.views.network.ConnectionState
+import com.example.roboranger.domain.ConnectionState
 
 object SettingsDestination : NavigationDestination {
     override val route = "settings"
@@ -153,12 +153,14 @@ fun SettingsBody(
         val connectedDeviceName = (networkUiState.connectionState as? ConnectionState.Connected)?.deviceName
         val isConnectedToLastSsid = connectedDeviceName == networkUiState.lastConnectedSsid
 
+        Spacer(Modifier.height(20.dp))
+
         // Only show the card if there is a saved network
         if (networkUiState.lastConnectedSsid.isNotBlank()) {
             val descriptor = if (isConnectedToLastSsid) {
-                "Connected network"
+                "Robot Conectado"
             } else {
-                "Last connected network"
+                "Último Robot Conectado"
             }
 
             // Use the new and improved card component
@@ -172,9 +174,12 @@ fun SettingsBody(
         }
 
         // Boton de Emparejar Robot, navega a vista correspondiente
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(20.dp))
         Button(
-            onClick = navigateToNetworkSearch,
+            onClick = {
+                networkSearchViewModel.disconnect()
+                navigateToNetworkSearch()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
@@ -191,7 +196,7 @@ fun SettingsBody(
         }
 
         // Boton de Cerrar Sesion
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(20.dp))
         Button(
             onClick = onLogOut,
             modifier = Modifier

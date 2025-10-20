@@ -3,17 +3,16 @@ package com.example.roboranger.ui.views.network
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.roboranger.data.UserPreferencesRepository
-
+import com.example.roboranger.domain.ConnectionState
+import com.example.roboranger.domain.UserPreferencesRepository
+import com.example.roboranger.domain.WifiConnectionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
+import javax.inject.Inject
 
 data class NetworkSearchUiState(
     val networkName: String = "",
@@ -25,7 +24,6 @@ data class NetworkSearchUiState(
     val reconnectionStatus: ReconnectionStatus = ReconnectionStatus.Idle
 )
 
-// New sealed interface for the reconnect dialog's state
 sealed interface ReconnectionStatus {
     object Idle : ReconnectionStatus
     object InProgress : ReconnectionStatus
@@ -36,22 +34,71 @@ sealed interface ReconnectionStatus {
 @HiltViewModel
 class NetworkSearchViewModel @Inject constructor(
     private val repository: WifiConnectionRepository,
-    private val userPreferencesRepository: UserPreferencesRepository // New dependency
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NetworkSearchUiState())
     val uiState = _uiState.asStateFlow()
 
-    private var connectionJob: Job? = null
+    // Variables to hold the credentials for the current connection attempt, preventing race conditions.
+    private var ssidForCurrentConnectionAttempt: String = ""
+    private var passwordForCurrentConnectionAttempt: String = ""
+
+    // Flag to track if the success/fail popup should be shown.
+    private var isReconnectionAttemptInProgress: Boolean = false
 
     init {
+        // Observe the shared connection state from the singleton repository.
         viewModelScope.launch {
-            // Now collects the network object with both SSID and password
-            userPreferencesRepository.lastConnectedNetwork.collect { network ->
+            repository.connectionState.collect { state ->
+                _uiState.update { it.copy(connectionState = state) }
+
+                if (state is ConnectionState.Connected) {
+                    // Upon success, save the credentials that were used for THIS connection attempt.
+                    val ssidToSave = ssidForCurrentConnectionAttempt
+                    val passwordToSave = passwordForCurrentConnectionAttempt
+
+                    // Sanity check: ensure the connected device matches the one we intended to connect to.
+                    if (ssidToSave.isNotEmpty() && ssidToSave == state.deviceName) {
+                        Log.d("ViewModelData", "✅ SAVING credentials -> SSID: $ssidToSave, Password: $passwordToSave")
+                        userPreferencesRepository.saveLastConnectedNetwork(ssidToSave, passwordToSave)
+                    } else if (ssidToSave.isNotEmpty()) {
+                        Log.w("ViewModelData", "⚠️ Mismatch on save! Attempted SSID '$ssidToSave' but connected to '${state.deviceName}'. Not saving credentials.")
+                    }
+                }
+
+
+                if (isReconnectionAttemptInProgress) {
+                    when (state) {
+                        is ConnectionState.Connected -> {
+                            _uiState.update { it.copy(reconnectionStatus = ReconnectionStatus.Success) }
+                            isReconnectionAttemptInProgress = false // Reset the flag
+                        }
+                        is ConnectionState.Error -> {
+                            _uiState.update { it.copy(reconnectionStatus = ReconnectionStatus.Failed(state.message)) }
+                            isReconnectionAttemptInProgress = false // Reset the flag
+                        }
+                        else -> { /* Wait for a final state */ }
+                    }
+                }
+
+                // Clear temporary credentials if the connection is lost or fails, to prevent outdated saves.
+                if (state is ConnectionState.Error || state is ConnectionState.Idle) {
+                    ssidForCurrentConnectionAttempt = ""
+                    passwordForCurrentConnectionAttempt = ""
+                }
+            }
+        }
+
+        // Check for the last connected network to offer reconnection.
+        viewModelScope.launch {
+            val lastNetwork = userPreferencesRepository.lastConnectedNetwork.first()
+            if (lastNetwork.ssid.isNotEmpty()) {
+                Log.d("ViewModelData", "📦 LOADING credentials -> SSID: ${lastNetwork.ssid}, Password: ${lastNetwork.password}")
                 _uiState.update {
                     it.copy(
-                        lastConnectedSsid = network.ssid,
-                        lastConnectedPassword = network.password
+                        lastConnectedSsid = lastNetwork.ssid,
+                        lastConnectedPassword = lastNetwork.password
                     )
                 }
             }
@@ -66,83 +113,59 @@ class NetworkSearchViewModel @Inject constructor(
         _uiState.update { it.copy(password = newPassword) }
     }
 
-    fun onIsOpenNetworkChange(isOpen: Boolean) {
-        _uiState.update { it.copy(isOpenNetwork = isOpen, password = "") }
-    }
-
-    fun onSearchClicked() {
-        if (_uiState.value.networkName.isBlank()) {
-            _uiState.update {
-                it.copy(connectionState = ConnectionState.Error("Network name cannot be empty."))
-            }
-            return
-        }
-
-        connectionJob?.cancel()
-
-        val nameToSearch = _uiState.value.networkName
-        val robotPassword = if (_uiState.value.isOpenNetwork) "" else _uiState.value.password
-
-        connectionJob = viewModelScope.launch {
-            repository.connectToRobotWifi(nameToSearch, robotPassword)
-                .collect { state ->
-                    _uiState.update { it.copy(connectionState = state) }
-                    // When a connection is successful, save the network name.
-                    if (state is ConnectionState.Connected) {
-                        userPreferencesRepository.saveLastConnectedNetwork(state.deviceName, robotPassword)
-                    }
-                }
+    fun onOpenNetworkChecked(isChecked: Boolean) {
+        _uiState.update {
+            it.copy(
+                isOpenNetwork = isChecked,
+                password = if (isChecked) "" else it.password
+            )
         }
     }
 
-    /*
-    * Tries to reconnect to the last saved network, showing a dialog for feedback.
-    */
+    fun connect() {
+        val networkName = _uiState.value.networkName
+        val password = _uiState.value.password
+        // Store the credentials being used for this specific attempt.
+        ssidForCurrentConnectionAttempt = networkName
+        passwordForCurrentConnectionAttempt = password
+        repository.connectToRobotWifi(networkName, password)
+    }
+
     fun reconnectToLastNetwork() {
         val lastSsid = _uiState.value.lastConnectedSsid
-        val lastPassword = _uiState.value.lastConnectedPassword // Use the saved password
-        if (lastSsid.isBlank()) {
-            _uiState.update { it.copy(reconnectionStatus = ReconnectionStatus.Failed("No saved network found.")) }
-            return
-        }
-        connectionJob?.cancel()
-        connectionJob = viewModelScope.launch {
-            _uiState.update { it.copy(reconnectionStatus = ReconnectionStatus.InProgress) }
-            try {
-                // Set a 15-second timeout for the connection attempt
-                withTimeout(15_000L) {
-                    // Pass the saved password to the connection function
-                    repository.connectToRobotWifi(lastSsid, lastPassword).collect { state ->
-                        _uiState.update { it.copy(connectionState = state) }
-                        if (state is ConnectionState.Connected) {
-                            _uiState.update { it.copy(reconnectionStatus = ReconnectionStatus.Success) }
-                            userPreferencesRepository.saveLastConnectedNetwork(state.deviceName, lastPassword)
-                        }
-                        if (state is ConnectionState.Error) {
-                            _uiState.update { it.copy(reconnectionStatus = ReconnectionStatus.Failed(state.message)) }
-                        }
-                    }
-                }
-            } catch (e: TimeoutCancellationException) {
-                Log.e("ViewModel", "Reconnect timed out.")
-                disconnect() // Clean up on timeout
-                _uiState.update { it.copy(reconnectionStatus = ReconnectionStatus.Failed("Connection timed out.")) }
+        val lastPassword = _uiState.value.lastConnectedPassword
+        if (lastSsid.isNotEmpty()) {
+            // Set the flag to indicate a reconnection attempt has started.
+            isReconnectionAttemptInProgress = true
+            _uiState.update {
+                it.copy(
+                    networkName = lastSsid,
+                    password = lastPassword,
+                    reconnectionStatus = ReconnectionStatus.InProgress
+                )
             }
+            // Store the credentials being used for this specific attempt.
+            ssidForCurrentConnectionAttempt = lastSsid
+            passwordForCurrentConnectionAttempt = lastPassword
+            repository.connectToRobotWifi(lastSsid, lastPassword)
         }
     }
 
-    /**
-     * Disconnects from the current network and cancels any ongoing connection attempts.
-     */
     fun disconnect() {
-        connectionJob?.cancel()
         repository.disconnect()
-        _uiState.update { it.copy(connectionState = ConnectionState.Idle) }
+        // Clear the temporary credential holders on manual disconnect.
+        ssidForCurrentConnectionAttempt = ""
+        passwordForCurrentConnectionAttempt = ""
+        // Also, clear the current search input fields to reset the UI state.
+        _uiState.update {
+            it.copy(
+                networkName = "",
+                password = "",
+                isOpenNetwork = false
+            )
+        }
     }
 
-    /**
-     * Dismisses the reconnect dialog by resetting its state.
-     */
     fun dismissReconnectDialog() {
         _uiState.update { it.copy(reconnectionStatus = ReconnectionStatus.Idle) }
     }
@@ -155,7 +178,13 @@ class NetworkSearchViewModel @Inject constructor(
 
     fun resetSearch() {
         disconnect()
-        _uiState.update { it.copy(networkName = "", password = "", isOpenNetwork = false, connectionState = ConnectionState.Idle) }
+    }
+
+    // The onCleared method is now empty regarding the connection.
+    // This prevents the network from disconnecting when navigating away from the screen.
+    override fun onCleared() {
+        super.onCleared()
+        // The connection now persists beyond this ViewModel's lifecycle.
     }
 }
 
