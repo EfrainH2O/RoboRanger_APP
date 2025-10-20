@@ -8,12 +8,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.roboranger.domain.model.SaveState
 import com.example.roboranger.domain.usecase.StreamFramesUseCase
 import com.example.roboranger.domain.usecase.control.CapturePhotoUseCase
+import com.example.roboranger.domain.usecase.control.GetLocationUseCase
 import com.example.roboranger.domain.usecase.control.SetLightUseCase
 import com.example.roboranger.domain.usecase.control.StopUseCase
 import com.example.roboranger.domain.usecase.control.TryGoBackUseCase
 import com.example.roboranger.domain.usecase.control.TryGoFrontUseCase
 import com.example.roboranger.domain.usecase.control.TryGoLeftUseCase
 import com.example.roboranger.domain.usecase.control.TryGoRightUseCase
+import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +38,8 @@ class RobotControlViewModel @Inject constructor(
     private val stopUseCase: StopUseCase,
     private val setLightUseCase: SetLightUseCase,
     private val streamFrames: StreamFramesUseCase,
-    private val capturePhoto: CapturePhotoUseCase
+    private val capturePhoto: CapturePhotoUseCase,
+    private val getLocationUseCase: GetLocationUseCase
 ): ViewModel() {
 
     // Estados del Stream y UI
@@ -49,6 +52,10 @@ class RobotControlViewModel @Inject constructor(
 
     private val _timeLeft = MutableStateFlow(10)
     val lightState = mutableStateOf(false)
+
+    var active_ubication_popup  =  mutableStateOf(false)
+    private val _viewState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState.Loading)
+    val viewState = _viewState.asStateFlow()
 
     // Jobs
     private var streamingJob: Job? = null
@@ -190,4 +197,35 @@ class RobotControlViewModel @Inject constructor(
     fun resetCameraPhotoState(){
         _savingState.value = SaveState.Idle
     }
+
+    fun handle(event: PermissionEvent) {
+        when (event) {
+            PermissionEvent.Granted -> {
+                viewModelScope.launch {
+                    getLocationUseCase.invoke().collect { location ->
+                        _viewState.value = ViewState.Success(location)
+                    }
+                }
+            }
+
+            PermissionEvent.Revoked -> {
+                _viewState.value = ViewState.RevokedPermissions
+            }
+        }
+    }
+
+
+}
+
+
+
+sealed interface ViewState {
+    object Loading : ViewState
+    data class Success(val location: LatLng?) : ViewState
+    object RevokedPermissions : ViewState
+}
+
+sealed interface PermissionEvent {
+    object Granted : PermissionEvent
+    object Revoked : PermissionEvent
 }
