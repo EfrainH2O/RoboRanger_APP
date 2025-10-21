@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
 }
@@ -38,6 +41,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+    secrets{
+        propertiesFileName = "secrets.properties"
     }
 }
 
@@ -51,6 +58,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -75,4 +83,8 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.57.2")
     ksp("com.google.dagger:hilt-android-compiler:2.57.2")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+    //Maps
+    implementation("com.google.maps.android:maps-compose:4.4.1")
+    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+
 }

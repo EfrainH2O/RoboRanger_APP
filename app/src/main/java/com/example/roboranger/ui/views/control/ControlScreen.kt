@@ -1,5 +1,7 @@
 package com.example.roboranger.ui.views.control
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.widget.Toast
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,6 +31,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
@@ -38,7 +42,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,8 +55,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.roboranger.R
+import com.example.roboranger.data.local.hasLocationPermission
 import com.example.roboranger.domain.model.SaveState
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
@@ -58,6 +66,17 @@ import com.example.roboranger.ui.components.MovementActionButton
 import com.example.roboranger.ui.components.RoboRangerFAB
 import com.example.roboranger.ui.components.RoboRangerRoundIconButton
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapType
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 object ControlDestination : NavigationDestination {
     override val route = "control"
@@ -84,6 +103,7 @@ fun ControlScreen(
     val frameBitmap by controlViewModel.videoBitmap.collectAsState()
     val flashlightOn by remember { controlViewModel.lightState } // mutableState<Boolean>
     val vmError by remember { controlViewModel.errorM }           // mutableState<String?>
+    var active_ubication_popup by remember {controlViewModel.active_ubication_popup}
 
     // Arrancar / detener streaming con el ciclo de la pantalla
     DisposableEffect(Unit) {
@@ -125,6 +145,9 @@ fun ControlScreen(
             { Spacer(Modifier.size(6.dp)) }
         }
         else -> { { } }
+    }
+    if(active_ubication_popup){
+        LocationSetUp(controlViewModel)
     }
 
     Scaffold(
@@ -319,7 +342,7 @@ private fun RightActions(
     ) {
         RoboRangerRoundIconButton(
             icon = Icons.Filled.LocationOn,
-            action = {},
+            action = {controlViewModel.active_ubication_popup.value = true},
             label = stringResource(R.string.location_icon)
         )
         RoboRangerRoundIconButton(
@@ -339,3 +362,121 @@ private fun RightActions(
         )
     }
 }
+
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+@SuppressLint("MissingPermission")
+fun LocationSetUp(
+    controlViewModel: RobotControlViewModel
+    ){
+    val permissionState = rememberMultiplePermissionsState(
+        permissions = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+    )
+    LaunchedEffect(LocalContext.current.hasLocationPermission()) {
+        permissionState.launchMultiplePermissionRequest()
+    }
+
+    when {
+        permissionState.allPermissionsGranted -> {
+            LaunchedEffect(Unit) {
+                controlViewModel.handle(PermissionEvent.Granted)
+            }
+        }
+
+        permissionState.shouldShowRationale -> {
+            {
+                permissionState.launchMultiplePermissionRequest()
+            }
+
+        }
+
+        !permissionState.allPermissionsGranted && !permissionState.shouldShowRationale -> {
+            LaunchedEffect(Unit) {
+                controlViewModel.handle(PermissionEvent.Revoked)
+            }
+        }
+    }
+    val viewState = controlViewModel.viewState.collectAsState()
+    Dialog(
+        onDismissRequest = {controlViewModel.active_ubication_popup.value = false}
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.8f)
+                .clip(RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ){
+            with(viewState.value ) {
+                when (this) {
+                    ViewState.Loading -> {
+                        CircularProgressIndicator()
+                    }
+
+                    ViewState.RevokedPermissions -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(24.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("We need permissions to use show location")
+                        }
+                    }
+
+                    is ViewState.Success -> {
+                        val currentLoc =
+                            LatLng(
+                                location?.latitude ?: 0.0,
+                                location?.longitude ?: 0.0
+                            )
+                        LocationMap(
+                            ubi = currentLoc
+                        )
+                    }
+                }
+            }
+        }
+
+    }
+
+
+
+}
+
+@Composable
+fun LocationMap(
+    ubi : LatLng
+){
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(ubi, 17.5f)
+    }
+    var uiSettings by remember { mutableStateOf(MapUiSettings(zoomControlsEnabled = true)) }
+    var properties by remember { mutableStateOf(MapProperties(mapType =  MapType.SATELLITE)) }
+
+
+
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        uiSettings = uiSettings,
+        properties = properties,
+        cameraPositionState = cameraPositionState
+    ){
+        Marker(
+            state = MarkerState(position = ubi),
+            title = "Usuario",
+            snippet = "Esta es la posicion del usuario",
+            draggable = true
+        )
+
+    }
+
+
+}
+
+
