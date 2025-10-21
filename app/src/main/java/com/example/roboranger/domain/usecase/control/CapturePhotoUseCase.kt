@@ -8,6 +8,6 @@ import kotlinx.coroutines.flow.Flow
 class CapturePhotoUseCase(
     private val imageSaver: ImageSaver
 ) {
-    operator fun invoke(bitmap: Bitmap, fileName: String) : Flow<SaveState> =
-        imageSaver.save(bitmap, fileName)
+    operator fun invoke(bitmap: Bitmap, fileName: String, folderName: String) : Flow<SaveState> =
+        imageSaver.save(bitmap, fileName, folderName)
 }

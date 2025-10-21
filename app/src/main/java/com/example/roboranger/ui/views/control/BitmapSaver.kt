@@ -13,7 +13,7 @@ import okio.IOException
 import java.io.OutputStream
 
 object BitmapSaver {
-    fun saveBitmap(context: Context, bitmap: Bitmap, displayName: String) : Flow<SaveState> = flow{
+    fun saveBitmap(context: Context, bitmap: Bitmap, displayName: String, direction: String) : Flow<SaveState> = flow{
 
         val collection =
             MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
@@ -22,7 +22,7 @@ object BitmapSaver {
             put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
             put(MediaStore.Images.Media.IS_PENDING, 1)
-            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/RoboRanger")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/$direction")
         }
 
         val resolver = context.contentResolver
@@ -45,7 +45,7 @@ object BitmapSaver {
                 contentValues.clear()
                 contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
                 resolver.update(imageUri, contentValues, null, null)
-                emit(SaveState.Success("Image saved to gallery!"))
+                emit(SaveState.Success(imageUri))
 
             } catch (e: Exception) {
                 resolver.delete(imageUri, null, null)

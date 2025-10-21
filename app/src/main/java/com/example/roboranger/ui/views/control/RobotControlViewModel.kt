@@ -188,7 +188,7 @@ class RobotControlViewModel @Inject constructor(
         saveFileJob = viewModelScope.launch {
             _savingState.value = SaveState.Saving
             val name = "roboranger_capture_${System.currentTimeMillis()}.jpg"
-            capturePhoto(bitmapShot, name).collect { state ->
+            capturePhoto(bitmapShot, name, "RoboRanger").collect { state ->
                 _savingState.value = state
             }
         }

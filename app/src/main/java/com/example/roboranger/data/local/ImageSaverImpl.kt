@@ -12,8 +12,7 @@ import javax.inject.Inject
 class ImageSaverImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ImageSaver {
-    override fun save(bitmap: Bitmap, fileName: String): Flow<SaveState> {
-        // Se reutiliza el BitmapSaver
-        return BitmapSaver.saveBitmap(context, bitmap, fileName)
+    override fun save(bitmap: Bitmap, fileName: String, folderName: String): Flow<SaveState> {
+        return BitmapSaver.saveBitmap(context, bitmap, fileName, folderName)
     }
 }
