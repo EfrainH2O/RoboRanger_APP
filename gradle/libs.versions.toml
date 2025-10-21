@@ -12,12 +12,17 @@ retrofit = "2.9.0"
 loggingInterceptor = "4.11.0"
 materialIconsExtendedAndroid = "1.7.8"
 converterGson = "2.9.0"
+roomCompiler = "2.8.1"
+roomCompilerVersion = "2.8.2"
 secretsGradlePlugin = "2.0.1"
 playServicesLocation = "21.3.0"
 
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+androidx-room-compiler-v282 = { module = "androidx.room:room-compiler", version.ref = "roomCompilerVersion" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomCompiler" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

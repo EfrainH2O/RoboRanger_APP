@@ -115,7 +115,7 @@ fun ControlScreen(
     LaunchedEffect(saveState) {
         when (val s = saveState) {
             is SaveState.Success -> {
-                Toast.makeText(context, s.msg, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, s.savedURI.toString(), Toast.LENGTH_SHORT).show()
                 // regresar a Idle tras un pequeño delay para limpiar la barra
                 kotlinx.coroutines.delay(1000)
                 controlViewModel.resetCameraPhotoState()

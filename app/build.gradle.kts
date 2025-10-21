@@ -49,7 +49,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -86,5 +85,11 @@ dependencies {
     //Maps
     implementation("com.google.maps.android:maps-compose:4.4.1")
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+    // Room
+    annotationProcessor(libs.androidx.room.compiler)
+    // Room Coroutines kotlin
+    implementation(libs.androidx.room.ktx)
+    // Ksp room cm
+    ksp(libs.androidx.room.compiler.v282)
 
 }
