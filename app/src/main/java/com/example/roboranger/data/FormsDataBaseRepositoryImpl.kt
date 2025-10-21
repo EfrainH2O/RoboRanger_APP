@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 
 
-class FormsRepositoryImpl @Inject constructor(
+class FormsDataBaseRepositoryImpl @Inject constructor(
     private val formsDao: IFormsDao
 ) : FormsRepository {
 

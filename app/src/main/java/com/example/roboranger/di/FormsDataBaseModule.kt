@@ -2,7 +2,7 @@ package com.example.roboranger.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.roboranger.data.FormsRepositoryImpl
+import com.example.roboranger.data.FormsDataBaseRepositoryImpl
 import com.example.roboranger.data.local.Room.Converters
 import com.example.roboranger.data.local.Room.FormsDataBase
 import com.example.roboranger.data.local.Room.FormsRepository
@@ -40,7 +40,7 @@ object FormsDataBaseModule {
     @Singleton
     @Provides
     fun provideFormsRepository(dao: IFormsDao): FormsRepository {
-        return FormsRepositoryImpl(dao)
+        return FormsDataBaseRepositoryImpl(dao)
     }
 
 }

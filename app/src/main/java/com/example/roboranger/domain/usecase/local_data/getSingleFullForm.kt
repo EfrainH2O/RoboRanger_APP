@@ -1,6 +1,6 @@
 package com.example.roboranger.domain.usecase.local_data
 
-import com.example.roboranger.data.FormsRepositoryImpl
+import com.example.roboranger.data.FormsDataBaseRepositoryImpl
 import com.example.roboranger.data.local.Room.Forms_1
 import com.example.roboranger.data.local.Room.Forms_2
 import com.example.roboranger.domain.model.UIResources
@@ -9,18 +9,18 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetFormByIdUseCase @Inject constructor(
-    private val formsRepositoryImpl: FormsRepositoryImpl
+    private val formsDataBaseRepositoryImpl: FormsDataBaseRepositoryImpl
 ) {
     operator fun invoke(id: Int, formType: Int): Flow<FormResult> {
         return when (formType) {
-            1 -> formsRepositoryImpl.getForm1ById(id).map { resource ->
+            1 -> formsDataBaseRepositoryImpl.getForm1ById(id).map { resource ->
                 when (resource) {
                     is UIResources.Success -> FormResult.Form1Result(resource.data)
                     is UIResources.Error -> FormResult.Error(resource.message)
                     is UIResources.Loading -> FormResult.Loading
                 }
             }
-            2 -> formsRepositoryImpl.getForm2ById(id).map { resource ->
+            2 -> formsDataBaseRepositoryImpl.getForm2ById(id).map { resource ->
                 when (resource) {
                     is UIResources.Success -> FormResult.Form2Result(resource.data)
                     is UIResources.Error -> FormResult.Error(resource.message)
