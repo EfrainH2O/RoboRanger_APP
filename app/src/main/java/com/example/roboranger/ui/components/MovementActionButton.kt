@@ -8,6 +8,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.roboranger.ui.theme.RoboRangerTheme
 
 @Composable
 fun MovementActionButton(
@@ -39,4 +43,19 @@ fun MovementActionButton(
         contentColor = contentColor,
         interactionSource = interactionSource
     )
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun MovementActionButtonPreview() {
+    RoboRangerTheme {
+        MovementActionButton(
+            icon = Icons.Default.ArrowUpward,
+            label = "Adelante",
+            onEntryAction = {
+            },
+            onEndAction = { }
+        )
+    }
 }
