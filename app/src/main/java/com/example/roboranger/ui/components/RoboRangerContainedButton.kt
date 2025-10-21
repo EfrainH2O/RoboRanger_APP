@@ -14,8 +14,8 @@ import androidx.compose.ui.unit.dp
 fun RoboRangerButton(
     modifier: Modifier = Modifier,
     text: String,
+    enabled: Boolean = true,
     onClick: () -> Unit,
-    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,

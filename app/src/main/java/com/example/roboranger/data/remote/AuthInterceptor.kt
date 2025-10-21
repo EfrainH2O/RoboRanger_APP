@@ -13,7 +13,7 @@ class AuthInterceptor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
 
-        // Si el request marca "No-Auth: true:, no se agrega el Bearer
+        // Si el request marca "No-Auth: true, no se agrega el Bearer
         if (original.header("No-Auth") == "true") {
             val clean = original.newBuilder()
                 .removeHeader("No-Auth")

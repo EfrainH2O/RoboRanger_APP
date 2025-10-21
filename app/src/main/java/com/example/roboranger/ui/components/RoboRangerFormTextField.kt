@@ -34,13 +34,15 @@ fun RoboRangerFormTextField(
 fun RoboRangerFormMultiLineTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    labelText: String,
+    label: String,
+    placeholder: String,
     modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(labelText) },
+        label = { Text(label) },
+        placeholder = { Text(placeholder) },
         singleLine = false,
         modifier = modifier
             .fillMaxWidth()
@@ -68,18 +70,6 @@ private fun RoboRangerFormTextField() {
 @Composable
 private fun RoboRangerFormTextFieldEmpty() {
     RoboRangerFormTextField(
-        value = "",
-        onValueChange = {},
-        labelText = "Campo vacío",
-        modifier = Modifier.padding(16.dp)
-    )
-}
-
-
-@Preview(showBackground = true, name = "Multi-Line Text Field")
-@Composable
-private fun RoboRangerFormMultiLineTextField() {
-    RoboRangerFormMultiLineTextField(
         value = "",
         onValueChange = {},
         labelText = "Campo vacío",
