@@ -4,26 +4,31 @@ import android.net.Uri
 import androidx.core.net.toUri
 import androidx.room.ProvidedTypeConverter
 import androidx.room.TypeConverter
+import com.example.roboranger.ui.views.form.AnimalOptions
+import com.example.roboranger.ui.views.form.ObservationsTypeOptions
+import com.example.roboranger.ui.views.form.SeasonOptions
+import com.example.roboranger.ui.views.form.WeatherOptions
+import com.example.roboranger.ui.views.form.ZoneOptions
 
 @ProvidedTypeConverter
 class Converters {
     @TypeConverter
-    fun fromAnimalType(value: AnimalType): Int{
+    fun fromAnimalOptions(value: AnimalOptions): Int{
         return value.ordinal
     }
     @TypeConverter
-    fun toAnimalType(value: Int): AnimalType {
-        return enumValues<AnimalType>()[value]
+    fun toAnimalOptions(value: Int): AnimalOptions {
+        return enumValues<AnimalOptions>()[value]
     }
 
     @TypeConverter
-    fun fromObservationType(value: ObservationType): Int {
+    fun fromObservationsTypeOptions(value: ObservationsTypeOptions): Int {
         return value.ordinal
     }
 
     @TypeConverter
-    fun toObservationType(value: Int): ObservationType {
-        return enumValues<ObservationType>()[value]
+    fun toObservationsTypeOptions(value: Int): ObservationsTypeOptions {
+        return enumValues<ObservationsTypeOptions>()[value]
     }
 
     @TypeConverter
@@ -38,35 +43,35 @@ class Converters {
 
     // --- TypeConverter para ClimaType ---
     @TypeConverter
-    fun fromClimaType(value: ClimaType): Int {
+    fun fromWeatherOptions(value: WeatherOptions): Int {
         return value.ordinal
     }
 
     @TypeConverter
-    fun toClimaType(value: Int): ClimaType {
-        return enumValues<ClimaType>()[value]
+    fun toWeatherOptions(value: Int): WeatherOptions {
+        return enumValues<WeatherOptions>()[value]
     }
 
     // --- TypeConverter para EpocaType ---
     @TypeConverter
-    fun fromEpocaType(value: EpocaType): Int {
+    fun fromSeasonOptions(value: SeasonOptions): Int {
         return value.ordinal
     }
 
     @TypeConverter
-    fun toEpocaType(value: Int): EpocaType {
-        return enumValues<EpocaType>()[value]
+    fun toSeasonOptions(value: Int): SeasonOptions {
+        return enumValues<SeasonOptions>()[value]
     }
 
     // --- TypeConverter para ZonaType ---
     @TypeConverter
-    fun fromZonaType(value: ZonaType): Int {
+    fun fromZoneOptions(value: ZoneOptions): Int {
         return value.ordinal
     }
 
     @TypeConverter
-    fun toZonaType(value: Int): ZonaType {
-        return enumValues<ZonaType>()[value]
+    fun toZoneOptions(value: Int): ZoneOptions {
+        return enumValues<ZoneOptions>()[value]
     }
 
 }

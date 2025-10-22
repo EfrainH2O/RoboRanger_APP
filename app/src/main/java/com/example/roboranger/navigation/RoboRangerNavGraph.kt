@@ -2,9 +2,11 @@ package com.example.roboranger.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.roboranger.ui.views.auth.LogInDestination
 import com.example.roboranger.ui.views.auth.LogInScreen
 import com.example.roboranger.ui.views.control.ControlDestination
@@ -19,6 +21,8 @@ import com.example.roboranger.ui.views.network.NetworkSearchDestination
 import com.example.roboranger.ui.views.network.NetworkSearchScreen
 import com.example.roboranger.ui.views.settings.SettingsDestination
 import com.example.roboranger.ui.views.settings.SettingsScreen
+import com.example.roboranger.ui.views.staticForm.FormDetailDestination
+import com.example.roboranger.ui.views.staticForm.StaticFormScreen
 
 
 @Composable
@@ -56,7 +60,10 @@ fun RoboRangerNavHost (
             HomeScreen(
                 navigateToControl = { navController.navigate(ControlDestination.route) },
                 onNavigateSettings = { navController.navigate(SettingsDestination.route) },
-                navigateToFormDetails = { navController.navigate(FormDetailsDestination.route) }
+                navigateToFormDetails = { formId, formType ->
+                    navController.navigate("${FormDetailDestination.route}/$formId/$formType")
+                }
+
             )
         }
         composable(route = FormDetailsDestination.route) {
@@ -72,6 +79,20 @@ fun RoboRangerNavHost (
             NetworkSearchScreen(
                 // Pendiente
                 onNavigateUp = { navController.navigateUp() }
+            )
+        }
+
+        composable(
+            route = FormDetailDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(FormDetailDestination.FORM_ID_ARG) { type = NavType.IntType },
+                navArgument(FormDetailDestination.FORM_TYPE_ARG) { type =
+                    NavType.IntType }
+            )
+        ) {
+            StaticFormScreen(
+                onNavigateUp = { navController.navigateUp() },
+                onNavigateSettings = { navController.navigate(SettingsDestination.route) }
             )
         }
     }

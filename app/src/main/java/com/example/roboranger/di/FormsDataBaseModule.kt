@@ -5,8 +5,8 @@ import androidx.room.Room
 import com.example.roboranger.data.FormsDataBaseRepositoryImpl
 import com.example.roboranger.data.local.Room.Converters
 import com.example.roboranger.data.local.Room.FormsDataBase
-import com.example.roboranger.data.local.Room.FormsRepository
 import com.example.roboranger.data.local.Room.IFormsDao
+import com.example.roboranger.domain.FormsDataBaseRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,6 +30,7 @@ object FormsDataBaseModule {
         converters: Converters
     ) = Room.databaseBuilder(app, FormsDataBase::class.java, "RoboRanger_DB")
         .addTypeConverter(converters)
+        .fallbackToDestructiveMigration()
         .build()
 
     @Singleton
@@ -39,7 +40,7 @@ object FormsDataBaseModule {
     }
     @Singleton
     @Provides
-    fun provideFormsRepository(dao: IFormsDao): FormsRepository {
+    fun provideFormsDataBaseRepository(dao: IFormsDao): FormsDataBaseRepository {
         return FormsDataBaseRepositoryImpl(dao)
     }
 

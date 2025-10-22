@@ -1,8 +1,6 @@
 package com.example.roboranger.ui.views.form
 
 import android.content.pm.ActivityInfo
-import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +24,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -56,15 +53,14 @@ import coil3.compose.AsyncImage
 import com.example.roboranger.R
 import com.example.roboranger.domain.model.FormUiState
 import com.example.roboranger.domain.model.ImageState
-import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
 import com.example.roboranger.ui.components.RoboRangerButton
 import com.example.roboranger.ui.components.RoboRangerFormMultiLineTextField
 import com.example.roboranger.ui.components.RoboRangerFormSelectionRadioButton
 import com.example.roboranger.ui.components.RoboRangerTextField
+import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.ui.components.SelectableCardVertical
-import com.example.roboranger.ui.theme.PrimaryForestGreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
@@ -83,29 +79,19 @@ fun FormEntryScreen(
     canNavigateSettings: Boolean = true,
     formViewModel: FormViewModel = hiltViewModel()
 ) {
-    // Estados del viewmodel
     val uiState by formViewModel.uiState.collectAsState()
     val isLoading = uiState is FormUiState.Loading
     val errorMessage = (uiState as? FormUiState.Error)?.message
 
-    // Comportamientos basicos de la vista
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT)
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    // Campos Compartidos
-    var seasonOption by rememberSaveable { mutableStateOf<SeasonOptions?>(null) }
-    var weatherOption by rememberSaveable { mutableStateOf<WeatherOptions?>(null) }
-    var date by rememberSaveable { mutableStateOf("") }
-    val latitude by formViewModel.latitude
-    val longitude by formViewModel.longitude
-    var tMax by rememberSaveable { mutableStateOf("") }
-    var tMin by rememberSaveable { mutableStateOf("") }
-    var hMax by rememberSaveable { mutableStateOf("") }
+    val sharedFormState by formViewModel.sharedFormState.collectAsState()
+    val form1State by formViewModel.form1State.collectAsState()
+    val form7State by formViewModel.form7State.collectAsState()
 
-    // Campo de Formulario modular
     var formType by rememberSaveable { mutableStateOf(FormType.NONE) }
 
-    // Configuracion del estado de los permisos de ubicacion
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
             android.Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -113,38 +99,21 @@ fun FormEntryScreen(
         )
     )
 
-    // Campos del Formulario 1
-    var transect by rememberSaveable { mutableStateOf("") }
-    var animalOption by rememberSaveable { mutableStateOf<AnimalOptions?>(null) }
-    var commonName by rememberSaveable { mutableStateOf("") }
-    var scientificName by rememberSaveable { mutableStateOf("") }
-    var individuals by rememberSaveable { mutableStateOf("") }
-    var observationsTypeOption by rememberSaveable { mutableStateOf<ObservationsTypeOptions?>(null) }
-    var observations by rememberSaveable { mutableStateOf("") }
-
-    // Campos del Formulario 7
-    var zoneOption by rememberSaveable { mutableStateOf<ZoneOptions?>(null) }
-    var pluviosity by rememberSaveable { mutableStateOf("") }
-    var ravineLevel by rememberSaveable { mutableStateOf("") }
-
-    // Ultima imagen capturada
     val imageState by formViewModel.imageState.collectAsState()
 
-    // Validacion de formularios
-    val sharedOk = seasonOption != null && weatherOption != null && date.isNotBlank()
-            && latitude.toDoubleOrNull() != null && longitude.toDoubleOrNull() != null
-            && tMax.toDoubleOrNull() != null && tMin.toDoubleOrNull() != null && hMax.toDoubleOrNull() != null
+    val sharedOk = sharedFormState.nombre.isNotBlank() && sharedFormState.season != null && sharedFormState.weather != null && sharedFormState.date.isNotBlank()
+            && sharedFormState.latitude.toDoubleOrNull() != null && sharedFormState.longitude.toDoubleOrNull() != null
+            && sharedFormState.maxTemp.toDoubleOrNull() != null && sharedFormState.minTemp.toDoubleOrNull() != null && sharedFormState.maxHum.toDoubleOrNull() != null
 
     val form1Ok = sharedOk && formType == FormType.FORM1 &&
-            transect.isNotBlank() && animalOption != null && commonName.isNotBlank() &&
-            (individuals.toIntOrNull() ?: 0) > 0 && observationsTypeOption != null
+            form1State.transect.isNotBlank() && form1State.animalType != null && form1State.commonName.isNotBlank() &&
+            (form1State.individuals.toIntOrNull() ?: 0) > 0 && form1State.observationsType != null
 
     val form7Ok = sharedOk && formType == FormType.FORM7 &&
-            zoneOption != null && pluviosity.toDoubleOrNull() != null && ravineLevel.toDoubleOrNull() != null
+            form7State.zone != null && form7State.pluviosity.toDoubleOrNull() != null && form7State.ravineLevel.toDoubleOrNull() != null
 
-    // En la confirmacion del envio del formulario, navegar a Home
     LaunchedEffect(uiState) {
-        if (uiState is FormUiState.Success) {
+        if (uiState is FormUiState.Success || uiState is FormUiState.Saved) {
             navigateToHome()
             formViewModel.resetUiState()
         }
@@ -169,7 +138,13 @@ fun FormEntryScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
-                    onClick = {},
+                    onClick = {
+                        when (formType){
+                            FormType.FORM1 -> formViewModel.saveForm1()
+                            FormType.FORM7 -> formViewModel.saveForm7()
+                            else -> {}
+                        }
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Guardar")
@@ -179,44 +154,10 @@ fun FormEntryScreen(
                     enabled = !isLoading && (form1Ok || form7Ok) && imageState is ImageState.Available,
                     modifier = Modifier.weight(1f)
                 ) {
-                    val currentImageState = imageState
-                    if (currentImageState is ImageState.Available) {
-                        val imageUri: Uri = currentImageState.uri
-                        when (formType) {
-                            FormType.FORM1 -> formViewModel.submitForm1(
-                                transect = transect,
-                                weather = weatherOption!!.label,
-                                season = seasonOption!!.label,
-                                animalType = animalOption!!.label,
-                                commonName = commonName,
-                                scientificName = scientificName,
-                                individuals = individuals.toIntOrNull() ?: 0,
-                                observationsType = observationsTypeOption!!.label,
-                                observations = observations,
-                                latitude = latitude.toDouble(),
-                                longitude = longitude.toDouble(),
-                                maxTemp = tMax.toDouble(),
-                                maxHum = hMax.toDouble(),
-                                minTemp = tMin.toDouble(),
-                                date = date,
-                                imageUri = imageUri
-                            )
-                            FormType.FORM7 -> formViewModel.submitForm7(
-                                weather = weatherOption!!.label,
-                                season = seasonOption!!.label,
-                                zone = zoneOption!!.label,
-                                pluviosity = pluviosity.toDouble(),
-                                maxTemp = tMax.toDouble(),
-                                maxHum = hMax.toDouble(),
-                                minTemp = tMin.toDouble(),
-                                ravineLevel = ravineLevel.toDouble(),
-                                latitude = latitude.toDouble(),
-                                longitude = longitude.toDouble(),
-                                date = date,
-                                imageUri = imageUri
-                            )
-                            else -> {}
-                    }
+                    when (formType) {
+                        FormType.FORM1 -> formViewModel.submitForm1()
+                        FormType.FORM7 -> formViewModel.submitForm7()
+                        else -> {}
                     }
                 }
             }
@@ -229,17 +170,11 @@ fun FormEntryScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Formulario General con campos compartidos
             FormEntryBody(
-                seasonOption = seasonOption, onSeason = { seasonOption = it },
-                weatherOption = weatherOption, onWeather = { weatherOption = it },
-                date = date, onDate = { date = it },
-                latitude = latitude, onLatitude = { formViewModel.latitude.value = it },
-                longitude = longitude, onLongitude = { formViewModel.longitude.value = it },
-                tMax = tMax, onTMax = { tMax = it },
-                tMin = tMin, onTMin = { tMin = it },
-                hMax = hMax, onHMax = { hMax = it },
-                formType = formType, onFormType = { formType = it },
+                sharedState = sharedFormState,
+                onStateChange = formViewModel::onSharedFormChange,
+                formType = formType,
+                onFormType = { formType = it },
                 isLoading = isLoading,
                 onLocationClick = {
                     if (locationPermissionsState.allPermissionsGranted) {
@@ -250,25 +185,17 @@ fun FormEntryScreen(
                 },
                 isFetchingLocation = formViewModel.isFetchingLocation.collectAsState().value
             )
-            // Formulario Condicional
             when (formType) {
                 FormType.FORM1 -> Form1EntryBody(
-                    transect = transect, onTransect = { transect = it },
-                    animalOption = animalOption, onAnimalOptions = { animalOption = it },
-                    commonName = commonName, onCommonName = { commonName = it },
-                    scientificName = scientificName, onScientificName = { scientificName = it },
-                    individuals = individuals, onIndividuals = { individuals = it },
-                    observationsTypeOption = observationsTypeOption, onObservationsTypeOptions = { observationsTypeOption = it },
-                    observations = observations, onObservations = { observations = it }
+                    form1State = form1State,
+                    onForm1Change = formViewModel::onForm1Change
                 )
                 FormType.FORM7 -> Form7EntryBody(
-                    zoneOptions = zoneOption, onZone = { zoneOption = it },
-                    pluviosity = pluviosity, onPluviosity = { pluviosity = it },
-                    ravineLevel = ravineLevel, onRavineLevel = { ravineLevel = it }
+                    form7State = form7State,
+                    onForm7Change = formViewModel::onForm7Change
                 )
                 else -> Unit
             }
-            // Tarjeta de imagen capturada
             Text(
                 text = "Imagen Capturada",
                 style = MaterialTheme.typography.titleMedium
@@ -284,12 +211,12 @@ fun FormEntryScreen(
                 ) {
                     when (val state = imageState) {
                         is ImageState.Available -> {
-                        AsyncImage(
-                            model = state.uri,
-                            contentDescription = "Última imagen capturada",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                            AsyncImage(
+                                model = state.uri,
+                                contentDescription = "Última imagen capturada",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
                         }
                         is ImageState.NotAvailable -> {
                             Text(
@@ -303,7 +230,6 @@ fun FormEntryScreen(
                 }
             }
 
-            // Visibilidad de estados del formulario
             if (errorMessage != null) {
                 Text(
                     text = errorMessage,
@@ -322,15 +248,10 @@ fun FormEntryScreen(
 
 @Composable
 fun FormEntryBody(
-    seasonOption: SeasonOptions?, onSeason: (SeasonOptions) -> Unit,
-    weatherOption: WeatherOptions?, onWeather: (WeatherOptions) -> Unit,
-    date: String, onDate: (String) -> Unit,
-    latitude: String, onLatitude: (String) -> Unit,
-    longitude: String, onLongitude: (String) -> Unit,
-    tMax: String, onTMax: (String) -> Unit,
-    hMax: String, onHMax: (String) -> Unit,
-    tMin: String, onTMin: (String) -> Unit,
-    formType: FormType, onFormType: (FormType) -> Unit,
+    sharedState: SharedFormState,
+    onStateChange: (SharedFormState) -> Unit,
+    formType: FormType,
+    onFormType: (FormType) -> Unit,
     isLoading: Boolean,
     onLocationClick: () -> Unit,
     isFetchingLocation: Boolean
@@ -339,27 +260,31 @@ fun FormEntryBody(
         text = "Datos Generales",
         style = MaterialTheme.typography.titleLarge
     )
-    // Clima con tarjetas horizontales
+    RoboRangerTextField(
+        label = "Nombre",
+        value = sharedState.nombre,
+        onValueChange = { onStateChange(sharedState.copy(nombre = it)) },
+        placeholder = "Introduzca el nombre del Form",
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+    )
     Text(
         text = "Estado del tiempo",
         style = MaterialTheme.typography.titleMedium
     )
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp,
-            Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         WeatherOptions.entries.forEach { opt ->
             SelectableCardVertical(
                 text = opt.label,
-                selected = weatherOption == opt,
-                onClick = { onWeather(opt) },
+                selected = sharedState.weather == opt,
+                onClick = { onStateChange(sharedState.copy(weather = opt)) },
                 modifier = Modifier
                     .height(168.dp)
                     .width(128.dp)
             ) {
-                // Emoji
                 Text(
                     text = opt.emoji,
                     fontSize = 28.sp
@@ -367,7 +292,6 @@ fun FormEntryBody(
             }
         }
     }
-    // Temporada con radio unico
     Spacer(Modifier.height(8.dp))
     Text(
         text = "Época",
@@ -377,33 +301,31 @@ fun FormEntryBody(
         SeasonOptions.entries.forEach { opt ->
             RoboRangerFormSelectionRadioButton(
                 text = opt.label,
-                selected = seasonOption == opt,
-                onClick = { onSeason(opt) }
+                selected = sharedState.season == opt,
+                onClick = { onStateChange(sharedState.copy(season = opt)) }
             )
         }
     }
-    // Fecha con textfield
     Spacer(Modifier.height(8.dp))
     RoboRangerTextField(
         label = "Fecha",
-        value = date,
-        onValueChange = onDate,
+        value = sharedState.date,
+        onValueChange = { onStateChange(sharedState.copy(date = it)) },
         placeholder = "yyyy-mm-dd"
     )
-    // Ubicacion con una fila que contiene dos textfields numericos de latitud y longitud
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         RoboRangerTextField(
             label = "Latitud",
-            value = latitude,
-            onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onLatitude(it) },
+            value = sharedState.latitude,
+            onValueChange = {if (it.isEmpty() || it.toDoubleOrNull() != null) onStateChange(sharedState.copy(latitude = it)) },
             placeholder = "Introduzca la latitud",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)
         )
         RoboRangerTextField(
             label = "Longitud",
-            value = longitude,
-            onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onLongitude(it) },
+            value = sharedState.longitude,
+            onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onStateChange(sharedState.copy(longitude = it)) },
             placeholder = "Introduzca la longitud",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)
@@ -412,7 +334,7 @@ fun FormEntryBody(
             modifier = Modifier.size(56.dp).padding(top = 10.dp),
             shape = RoundedCornerShape(12.dp),
             color = MaterialTheme.colorScheme.primary,
-            onClick = if (isFetchingLocation) { {} } else { onLocationClick }
+            onClick = if (isFetchingLocation) { {} } else onLocationClick
         ) {
             Box(contentAlignment = Alignment.Center) {
                 if (isFetchingLocation) {
@@ -431,34 +353,31 @@ fun FormEntryBody(
             }
         }
     }
-    // Mediciones de temperatura con una fila que contiene dos textfields de min y max
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         RoboRangerTextField(
             label = "T. Máx (°C)",
-            value = tMax,
-            onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onTMax(it) },
+            value = sharedState.maxTemp,
+            onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onStateChange(sharedState.copy(maxTemp = it)) },
             placeholder = "Introduzca la temperatura en centigrados",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)
         )
         RoboRangerTextField(
             label = "T. Mín (°C)",
-            value = tMin,
-            onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onTMin(it) },
+            value = sharedState.minTemp,
+            onValueChange = {if (it.isEmpty() || it.toDoubleOrNull() != null)  onStateChange(sharedState.copy(minTemp = it)) },
             placeholder = "Introduzca la temperatura en centigrados",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)
         )
     }
-    // Mediciones de humedad con textfield
     RoboRangerTextField(
         label = "Humedad Máx (%)",
-        value = hMax,
-        onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onHMax(it) },
+        value = sharedState.maxHum,
+        onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onStateChange(sharedState.copy(maxHum = it)) },
         placeholder = "Introduzca la humedad en porcentaje",
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
     )
-    // Tipo de Registro a llenar con radio unico (Form1 o Form7)
     Spacer(Modifier.height(8.dp))
     Text(
         "Tipo de registro",
@@ -480,44 +399,35 @@ fun FormEntryBody(
 
 @Composable
 fun Form1EntryBody(
-    transect: String, onTransect: (String) -> Unit,
-    animalOption: AnimalOptions?, onAnimalOptions: (AnimalOptions) -> Unit,
-    commonName: String, onCommonName: (String) -> Unit,
-    scientificName: String, onScientificName: (String) -> Unit,
-    individuals: String, onIndividuals: (String) -> Unit,
-    observationsTypeOption: ObservationsTypeOptions?, onObservationsTypeOptions: (ObservationsTypeOptions) -> Unit,
-    observations: String, onObservations: (String) -> Unit
+    form1State: Form1State,
+    onForm1Change: (Form1State) -> Unit
 ) {
     Text(
         text = "Fauna en Transectos",
         style = MaterialTheme.typography.titleLarge
     )
-    // Transecto recorrido con textfield
     RoboRangerTextField(
         label = "Número de Transecto",
-        value = transect,
-        onValueChange = onTransect,
+        value = form1State.transect,
+        onValueChange = { onForm1Change(form1State.copy(transect = it)) },
         placeholder = "Introduzca el transecto recorrido"
     )
-    // Tipo de animal con tarjetas verticales
     Spacer(Modifier.height(8.dp))
     Text("Tipo de Animal", style = MaterialTheme.typography.titleMedium)
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp,
-            Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         AnimalOptions.entries.forEach { opt ->
             SelectableCardVertical(
                 text = opt.label,
-                selected = animalOption == opt,
-                onClick = { onAnimalOptions(opt) },
+                selected = form1State.animalType == opt,
+                onClick = { onForm1Change(form1State.copy(animalType = opt)) },
                 modifier = Modifier
                     .height(168.dp)
                     .width(128.dp)
             ) {
-                // Emoji
                 Text(
                     text = opt.emoji,
                     fontSize = 28.sp
@@ -525,45 +435,40 @@ fun Form1EntryBody(
             }
         }
     }
-    // Nombre comun del animal con textfield
     RoboRangerTextField(
         label = "Nombre Común",
-        value = commonName,
-        onValueChange = onCommonName,
+        value = form1State.commonName,
+        onValueChange = { onForm1Change(form1State.copy(commonName = it)) },
         placeholder = "Introduzca el nombre del animal"
     )
-    // Nombre cientifico del animal con textfield
     RoboRangerTextField(
         label = "Nombre Científico (opcional)",
-        value = scientificName,
-        onValueChange = onScientificName,
+        value = form1State.scientificName,
+        onValueChange = { onForm1Change(form1State.copy(scientificName = it)) },
         placeholder = "Introduzca el nombre científico"
     )
-    // Numero de animales avistados con textfield numerico
     RoboRangerTextField(
         label = "Número de Individuos",
-        value = individuals,
-        onValueChange = { if (it.isEmpty() || it.toIntOrNull() != null) onIndividuals(it) },
+        value = form1State.individuals,
+        onValueChange = { onForm1Change(form1State.copy(individuals = it)) },
         placeholder = "Introduzca el numero de individuos",
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next)
     )
-    // Tipo de observacion con textfield
     Spacer(Modifier.height(8.dp))
     Text("Tipo de Observación", style = MaterialTheme.typography.titleMedium)
     Column {
         ObservationsTypeOptions.entries.forEach { opt ->
             RoboRangerFormSelectionRadioButton(
                 text = opt.label,
-                selected = observationsTypeOption == opt,
-                onClick = { onObservationsTypeOptions(opt) }
+                selected = form1State.observationsType == opt,
+                onClick = { onForm1Change(form1State.copy(observationsType = opt)) }
             )
         }
     }
-    // Observaciones del encuentro con textfield multilineal
     RoboRangerFormMultiLineTextField(
         label = "Observaciones",
-        value = observations,
-        onValueChange = onObservations,
+        value = form1State.observations,
+        onValueChange = { onForm1Change(form1State.copy(observations = it)) },
         placeholder = "Introduzca las observaciones realizadas...",
         modifier = Modifier.heightIn(min = 120.dp)
     )
@@ -571,15 +476,13 @@ fun Form1EntryBody(
 
 @Composable
 fun Form7EntryBody(
-    zoneOptions: ZoneOptions?, onZone: (ZoneOptions) -> Unit,
-    pluviosity: String, onPluviosity: (String) -> Unit,
-    ravineLevel: String, onRavineLevel: (String) -> Unit
+    form7State: Form7State,
+    onForm7Change: (Form7State) -> Unit
 ) {
     Text(
         text = "Variables Climáticas",
         style = MaterialTheme.typography.titleLarge
     )
-    // Zona analizada con radio unico
     Text(
         text = "Zona",
         style = MaterialTheme.typography.titleMedium
@@ -588,25 +491,24 @@ fun Form7EntryBody(
         ZoneOptions.entries.forEach { opt ->
             RoboRangerFormSelectionRadioButton(
                 text = opt.label,
-                selected = zoneOptions == opt,
-                onClick = { onZone(opt) }
+                selected = form7State.zone == opt,
+                onClick = { onForm7Change(form7State.copy(zone = opt)) }
             )
         }
     }
-    // Fila que contiene la pluviosidad y nivel de quebrada con textfields numericos
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         RoboRangerTextField(
             label = "Pluviosidad (mm)",
-            value = pluviosity,
-            onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onPluviosity(it) },
+            value = form7State.pluviosity,
+            onValueChange = {if (it.isEmpty() || it.toDoubleOrNull() != null)  onForm7Change(form7State.copy(pluviosity = it)) },
             placeholder = "Introduzca el rango de pluviosidad",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)
         )
         RoboRangerTextField(
             label = "Nivel quebrada (mt)",
-            value = ravineLevel,
-            onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onRavineLevel(it) },
+            value = form7State.ravineLevel,
+            onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onForm7Change(form7State.copy(ravineLevel = it)) },
             placeholder = "Introduzca el nivel de quebrada",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)

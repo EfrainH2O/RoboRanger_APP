@@ -7,7 +7,8 @@ import androidx.room.TypeConverters
 
 @Database(
     entities = [Forms_1::class, Forms_2::class],
-    version = 1
+    exportSchema = true,
+    version = 2
 )
 @TypeConverters(Converters::class)
 abstract class FormsDataBase: RoomDatabase() {

@@ -4,6 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.example.roboranger.ui.views.form.SeasonOptions
+import com.example.roboranger.ui.views.form.WeatherOptions
 
 @Dao
 interface IFormsDao {
@@ -29,26 +31,30 @@ interface IFormsDao {
     suspend fun getFormsCount(): Int
 
     @Query("""
-        SELECT id, clima, temporada, latitude, longitude, fecha, enviado, 1 as formType FROM Forms_1
+        SELECT id, nombre, clima, temporada, latitude, longitude, fecha, hora, enviado, 1 as formType FROM Forms_1
         UNION ALL
-        SELECT id, clima, temporada, latitude, longitude, fecha, enviado, 2 as formType FROM Forms_2
+        SELECT id, nombre, clima, temporada, latitude, longitude, fecha, hora, enviado, 2 as formType FROM Forms_2
     """)
     suspend fun getAllCommonForms(): List<CommonFormData>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertForm1(form: Forms_1)
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertForm2(form: Forms_2)
+    suspend fun insertForm1(form: Forms_1): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertForm2(form: Forms_2): Long
 }
 
 data class CommonFormData(
     val id: Int,
-    val clima: ClimaType,
-    val temporada: EpocaType,
+    val nombre: String,
+    val clima: WeatherOptions,
+    val temporada: SeasonOptions,
     val latitude: Double,
     val longitude: Double,
     val fecha: String,
+    val hora: String,
     val enviado: Boolean,
     val formType: Int // 1 para Forms_1, 2 para Forms_2
 )

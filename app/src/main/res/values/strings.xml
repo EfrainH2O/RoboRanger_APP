@@ -31,6 +31,7 @@
     <string name="action_logout">Cerrar Sesión</string>
     <string name="action_pair_robot">Desconectar y Emparejar Nuevo Robot</string>
     <string name="network_title">Buscar Robot</string>
+    <string name="form_detail_title">detail Screen</string>
 
 
 </resources>

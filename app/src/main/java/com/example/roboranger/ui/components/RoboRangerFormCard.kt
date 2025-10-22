@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.ShortText
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roboranger.data.FormCard
@@ -45,8 +46,8 @@ fun RoboRangerFormCard(
         ) {
             // Place
             InfoRow(
-                icon = Icons.Default.LocationOn,
-                text = formCard.place,
+                icon = Icons.Default.ShortText,
+                text = formCard.name,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -83,7 +84,7 @@ private fun InfoRow(
     text: String,
     modifier: Modifier = Modifier,
     fontWeight: FontWeight? = null,
-    fontSize: androidx.compose.ui.unit.TextUnit = 16.sp
+    fontSize: TextUnit = 16.sp
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -111,10 +112,11 @@ fun RoboRangerFormCardPreview() {
         RoboRangerFormCard(
             formCard = FormCard(
                 id = 1,
-                place = "Warehouse",
+                name = "Warehouse",
                 date = "2024-10-28",
                 hour = "15:00",
-                status = 0
+                status = false,
+                formType = 1,
             ),
             modifier = Modifier.padding(16.dp)
         )

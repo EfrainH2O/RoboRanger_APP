@@ -1,10 +1,10 @@
 package com.example.roboranger.domain.usecase.local_data
 
-import com.example.roboranger.data.local.Room.FormsRepository
+import com.example.roboranger.domain.FormsDataBaseRepository
 import javax.inject.Inject
 
 class MarkFormAsSentUseCase @Inject constructor(
-    private val formsRepository: FormsRepository
+    private val formsRepository: FormsDataBaseRepository
 ) {
     suspend operator fun invoke(formId: Int, formType: Int) {
         when (formType) {
