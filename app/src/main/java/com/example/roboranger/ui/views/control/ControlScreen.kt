@@ -233,7 +233,9 @@ private fun LeftControls(
         RoboRangerRoundIconButton(
             icon = Icons.Filled.Sensors,
             action = {},
-            label = stringResource(R.string.sensors_icon)
+            label = stringResource(R.string.sensors_icon),
+            contentColor = Color.Gray,
+            enabled = false
         )
         DPad(
             controlViewModel = controlViewModel
@@ -343,7 +345,8 @@ private fun RightActions(
         RoboRangerRoundIconButton(
             icon = Icons.Filled.LocationOn,
             action = {controlViewModel.active_ubication_popup.value = true},
-            label = stringResource(R.string.location_icon)
+            label = stringResource(R.string.location_icon),
+            containerColor = Color.Gray,
         )
         RoboRangerRoundIconButton(
             icon = Icons.Filled.PhotoCamera,
