@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.roboranger.domain.model.SaveState
 import com.example.roboranger.domain.usecase.StreamFramesUseCase
+import com.example.roboranger.domain.usecase.UpdateLatestImageUriUseCase
 import com.example.roboranger.domain.usecase.control.CapturePhotoUseCase
 import com.example.roboranger.domain.usecase.control.GetLocationUseCase
 import com.example.roboranger.domain.usecase.control.SetLightUseCase
@@ -39,7 +40,8 @@ class RobotControlViewModel @Inject constructor(
     private val setLightUseCase: SetLightUseCase,
     private val streamFrames: StreamFramesUseCase,
     private val capturePhoto: CapturePhotoUseCase,
-    private val getLocationUseCase: GetLocationUseCase
+    private val getLocationUseCase: GetLocationUseCase,
+    private val updateLatestImageUriUseCase: UpdateLatestImageUriUseCase
 ): ViewModel() {
 
     // Estados del Stream y UI
@@ -190,6 +192,11 @@ class RobotControlViewModel @Inject constructor(
             val name = "roboranger_capture_${System.currentTimeMillis()}.jpg"
             capturePhoto(bitmapShot, name, "RoboRanger").collect { state ->
                 _savingState.value = state
+
+                if (state is SaveState.Success) {
+                    val savedImageUri = state.savedURI
+                    updateLatestImageUriUseCase(savedImageUri)
+                }
             }
         }
     }

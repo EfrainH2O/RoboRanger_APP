@@ -91,5 +91,8 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     // Ksp room cm
     ksp(libs.androidx.room.compiler.v282)
+    // Integracion de la dependencia de Coil para cargar imagenes con enlaces
+    implementation("io.coil-kt.coil3:coil-compose:3.3.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
 
 }
