@@ -22,12 +22,13 @@ fun RoboRangerRoundIconButton(
     label: String,
     action: () -> Unit,
     containerColor: Color = Color(0xFF4E7029),
-    contentColor: Color = Color.White
+    contentColor: Color = Color.White,
+    enabled: Boolean = true
 ) {
     Box(
         modifier = modifier.size(56.dp)
             .background(Color(0xFF4E7029), CircleShape),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         FilledIconButton(
             onClick = action,
@@ -40,7 +41,9 @@ fun RoboRangerRoundIconButton(
             shape = CircleShape,
             colors = IconButtonDefaults.filledIconButtonColors(
                 containerColor = containerColor,
-            )
+                disabledContainerColor = Color.DarkGray
+            ),
+            enabled = enabled
         ) {
             Icon(
                 imageVector = icon,
