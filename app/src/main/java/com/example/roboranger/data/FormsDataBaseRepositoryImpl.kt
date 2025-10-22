@@ -1,21 +1,22 @@
 package com.example.roboranger.data
 
+import android.util.Log
 import com.example.roboranger.data.local.Room.CommonFormData
-import com.example.roboranger.data.local.Room.FormsRepository
 import com.example.roboranger.data.local.Room.Forms_1
 import com.example.roboranger.data.local.Room.Forms_2
 import com.example.roboranger.data.local.Room.IFormsDao
+import com.example.roboranger.domain.FormsDataBaseRepository
 import com.example.roboranger.domain.model.UIResources
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
+import javax.inject.Singleton
 
-
-
+@Singleton
 class FormsDataBaseRepositoryImpl @Inject constructor(
     private val formsDao: IFormsDao
-) : FormsRepository {
+) : FormsDataBaseRepository {
 
     override fun getForm1ById(id: Int): Flow<UIResources<Forms_1>> = flow {
         emit(UIResources.Loading)
@@ -58,17 +59,21 @@ class FormsDataBaseRepositoryImpl @Inject constructor(
     }
 
     // Las operaciones de escritura lanzan la excepción para que el ViewModel la maneje.
-    override suspend fun insertForm1(form: Forms_1) {
+    override suspend fun insertForm1(form: Forms_1) : Long{
         try {
-            formsDao.insertForm1(form)
+            val id = formsDao.insertForm1(form)
+            Log.d("DB_Manager", "Insert successful")
+            return id
         } catch (e: Exception) {
             throw e
         }
     }
 
-    override suspend fun insertForm2(form: Forms_2) {
+    override suspend fun insertForm2(form: Forms_2) : Long{
         try {
-            formsDao.insertForm2(form)
+            val id = formsDao.insertForm2(form)
+            Log.d("DB_Manager", "Insert successful")
+            return id
         } catch (e: Exception) {
             throw e
         }

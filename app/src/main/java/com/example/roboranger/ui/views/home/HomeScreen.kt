@@ -1,7 +1,7 @@
 package com.example.roboranger.ui.views.home
 
 import android.content.pm.ActivityInfo
-import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,26 +17,28 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.roboranger.R
 import com.example.roboranger.data.FormCard
-import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
 import com.example.roboranger.ui.components.RoboRangerBottomAppBar
 import com.example.roboranger.ui.components.RoboRangerFormCard
-import com.example.roboranger.ui.views.form.FormCardViewModel
+import com.example.roboranger.ui.components.RoboRangerTopAppBar
+
 object HomeDestination : NavigationDestination {
     override val route = "home"
     override val titleRes = R.string.home_title
@@ -47,25 +49,19 @@ object HomeDestination : NavigationDestination {
 fun HomeScreen(
     modifier: Modifier = Modifier,
     navigateToControl: () -> Unit,
-    navigateToFormDetails: () -> Unit,
+    navigateToFormDetails: (Int, Int) -> Unit,
     onNavigateSettings: () -> Unit,
     canNavigateBack: Boolean = false,
     canNavigateSettings: Boolean = true,
-    // Instancia de viewmodel de formcard
-    formCardViewModel: FormCardViewModel = viewModel()
+    formCardViewModel: HomeViewModel = hiltViewModel()
 ) {
-    val formList = formCardViewModel.formList.value
-    var selectedStatus by remember { mutableIntStateOf(0) }
-    val filteredForms = remember(formList, selectedStatus) {
-        formList.filter { form ->
-            // This assumes your FormCard data class has a 'status' property.
-            // e.g., data class FormCard(..., val status: String)
-            form.status == selectedStatus
-        }
-    }
+    val uiState = formCardViewModel.uiState.collectAsState().value
+    var selectedStatus by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        formCardViewModel.loadData()
+    }
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-    //val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -89,11 +85,10 @@ fun HomeScreen(
                 .fillMaxWidth(),
             onNavigateControl = navigateToControl,
             onNavigateFormDetails = navigateToFormDetails,
-            formList = filteredForms,
+            uiState = uiState,
             selectedStatus = selectedStatus,
             onStatusSelected = { newStatus ->
                 selectedStatus = newStatus
-                // Actualizar la lista de formularios según el estado seleccionado
             }
         )
     }
@@ -102,10 +97,10 @@ fun HomeScreen(
 fun HomeBody(
     modifier: Modifier = Modifier,
     onNavigateControl: () -> Unit,
-    onNavigateFormDetails: () -> Unit,
-    formList: List<FormCard>,
-    selectedStatus: Int,
-    onStatusSelected: (Int) -> Unit
+    onNavigateFormDetails: (Int, Int) -> Unit,
+    uiState: UiState,
+    selectedStatus: Boolean,
+    onStatusSelected: (Boolean) -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -117,11 +112,11 @@ fun HomeBody(
             modifier = Modifier
                 .padding(vertical = 32.dp),
         ) {
-            FormsText(text = "Totales")
+            FormsText(text = "Totales", numForms = uiState.totalFormularios)
             Spacer(Modifier.padding(horizontal = 10.dp))
-            FormsText(text = "Enviados", colorText = Color(0xFF9BC86A))
+            FormsText(text = "Enviados", colorText = Color(0xFF9BC86A), numForms = uiState.totalFormulariosEnviados)
             Spacer(Modifier.padding(horizontal = 10.dp))
-            FormsText(text = "Guardados", colorText = Color(0xFFBC4749))
+            FormsText(text = "Guardados", colorText = Color(0xFFBC4749), numForms =  uiState.totalFormularios - uiState.totalFormulariosEnviados )
         }
 
         // Botones de cambio de lista de formularios
@@ -130,14 +125,14 @@ fun HomeBody(
                 .padding(bottom = 16.dp)
         ) {
             TextButton(
-                onClick = { onStatusSelected(0) },
+                onClick = { onStatusSelected(false) },
                 colors = ButtonDefaults.textButtonColors(
-                    contentColor = if (selectedStatus == 0) Color(0xFF9BC86A) else Color.Black
+                    contentColor = if (!selectedStatus) Color(0xFF9BC86A) else Color.Black
                 )
             ) {
                 Text("Enviados",
                     modifier = Modifier,
-                    fontWeight = if (selectedStatus == 0) FontWeight.ExtraBold else FontWeight.SemiBold,
+                    fontWeight = if (!selectedStatus) FontWeight.ExtraBold else FontWeight.SemiBold,
                     fontSize = 20.sp,
                 )
             }
@@ -145,39 +140,26 @@ fun HomeBody(
             Spacer(Modifier.padding(horizontal = 32.dp))
 
             TextButton(
-                onClick = { onStatusSelected(1) },
+                onClick = { onStatusSelected(true) },
                 colors = ButtonDefaults.textButtonColors(
-                    contentColor = if (selectedStatus == 1) Color(0xFFBC4749) else Color.Black
+                    contentColor = if (selectedStatus) Color(0xFFBC4749) else Color.Black
                 )
             ) {
                 Text("Guardados",
                     modifier = Modifier,
-                    fontWeight = if (selectedStatus == 1) FontWeight.ExtraBold else FontWeight.SemiBold,
+                    fontWeight = if (selectedStatus) FontWeight.ExtraBold else FontWeight.SemiBold,
                     fontSize = 20.sp,
                 )
             }
         }
 
-        // Grid que cambia dependiendo de el status seleccionado
         FormsGrid(
             modifier = Modifier,
-            formList = formList
+            formList = if(!selectedStatus) uiState.formulariosEnviados else uiState.formulariosNoEnviados,
+            openScreen = {data ->
+                onNavigateFormDetails(data.formType, data.id)
+            }
         )
-
-        // Botones de navegación
-        // Deberian de cambiarse a una bottombar definida
-        /*
-        Row() {
-            RoboRangerButtonIcon(
-                icon = Icons.Filled.DirectionsCar,
-                onClick = onNavigateControl
-            )
-            RoboRangerButtonIcon(
-                icon = Icons.Filled.FormatListNumberedRtl,
-                onClick = onNavigateFormDetails
-            )
-        }
-        */
     }
 }
 
@@ -186,6 +168,7 @@ fun HomeBody(
 fun FormsGrid(
     modifier: Modifier = Modifier,
     formList: List<FormCard>,
+    openScreen: (FormCard)-> Unit
 ) {
     LazyVerticalGrid(
         modifier = Modifier
@@ -194,10 +177,8 @@ fun FormsGrid(
         columns = GridCells.Fixed(1),
     ) {
         items(formList) { form ->
-            // Posteriormente volver las cartas botones que lleven
-            // a los formularios correspondientes
             RoboRangerFormCard(
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp).clickable(onClick = {openScreen(form)}),
                 formCard = form
             )
         }
@@ -225,16 +206,5 @@ fun FormsText(
             color = colorText
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeBodyPreview() {
-    HomeScreen(
-        navigateToControl = {},
-        navigateToFormDetails = {},
-        onNavigateSettings = {}
-
-    )
 }
 

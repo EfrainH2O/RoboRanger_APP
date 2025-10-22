@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -37,6 +39,7 @@ fun RoboRangerFormMultiLineTextField(
     label: String,
     placeholder: String,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
@@ -44,9 +47,16 @@ fun RoboRangerFormMultiLineTextField(
         label = { Text(label) },
         placeholder = { Text(placeholder) },
         singleLine = false,
+        enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 120.dp)
+            .defaultMinSize(minHeight = 120.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+        disabledBorderColor = MaterialTheme.colorScheme.outline,
+        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
     )
 }
 
