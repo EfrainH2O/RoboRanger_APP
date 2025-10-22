@@ -75,16 +75,20 @@ fun StaticFormScreen(
             )
         },
         bottomBar = { if (!uploadedState){
-            RoboRangerButton(
-                    text = "Subir",
+            Row(
                 modifier = Modifier.fillMaxWidth()
+                    .padding(16.dp)
             ) {
+                RoboRangerButton(
+                    text = "Subir",
+                    enabled = true,
+                    modifier = Modifier.weight(0.5f)
+                ) {
                     viewModel.submitCurrentForm()
                 }
             }
+            }
         }
-
-
     ) { innerPadding ->
         Box(
             modifier = Modifier

@@ -26,7 +26,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -58,6 +57,7 @@ import com.example.roboranger.ui.components.LockScreenOrientation
 import com.example.roboranger.ui.components.RoboRangerButton
 import com.example.roboranger.ui.components.RoboRangerFormMultiLineTextField
 import com.example.roboranger.ui.components.RoboRangerFormSelectionRadioButton
+import com.example.roboranger.ui.components.RoboRangerOutlinedButton
 import com.example.roboranger.ui.components.RoboRangerTextField
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.ui.components.SelectableCardVertical
@@ -113,7 +113,7 @@ fun FormEntryScreen(
             form7State.zone != null && form7State.pluviosity.toDoubleOrNull() != null && form7State.ravineLevel.toDoubleOrNull() != null
 
     LaunchedEffect(uiState) {
-        if (uiState is FormUiState.Success || uiState is FormUiState.Saved) {
+        if (uiState is FormUiState.Success || uiState is FormUiState.Saved || uiState is FormUiState.Error) {
             navigateToHome()
             formViewModel.resetUiState()
         }
@@ -137,7 +137,7 @@ fun FormEntryScreen(
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedButton(
+                RoboRangerOutlinedButton(
                     onClick = {
                         when (formType){
                             FormType.FORM1 -> formViewModel.saveForm1()
@@ -145,10 +145,9 @@ fun FormEntryScreen(
                             else -> {}
                         }
                     },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Guardar")
-                }
+                    modifier = Modifier.weight(1f),
+                    text = "Guardar"
+                )
                 RoboRangerButton(
                     text = "Subir",
                     enabled = !isLoading && (form1Ok || form7Ok) && imageState is ImageState.Available,
