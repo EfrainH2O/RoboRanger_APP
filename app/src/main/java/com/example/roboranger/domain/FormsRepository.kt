@@ -5,6 +5,6 @@ import com.example.roboranger.data.remote.dto.Form7RequestDto
 import com.example.roboranger.data.remote.dto.SubmissionResponseDto
 
 interface FormsRepository {
-    suspend fun submitForm1(body: Form1RequestDto) : SubmissionResponseDto
-    suspend fun submitForm7(body: Form7RequestDto) : SubmissionResponseDto
+    suspend fun submitForm1(imageBytes: ByteArray, metaData: Form1RequestDto) : SubmissionResponseDto
+    suspend fun submitForm7(imageBytes: ByteArray, metaData: Form7RequestDto) : SubmissionResponseDto
 }

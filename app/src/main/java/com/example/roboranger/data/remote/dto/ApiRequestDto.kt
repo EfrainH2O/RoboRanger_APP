@@ -102,5 +102,7 @@ data class SubmissionResponseDto(
     @SerializedName("formKey")
     val formKey: String,
     @SerializedName("data")
-    val data: JsonObject?
+    val data: JsonObject?,
+    @SerializedName("image_url")
+    val imageUrl: String
 )

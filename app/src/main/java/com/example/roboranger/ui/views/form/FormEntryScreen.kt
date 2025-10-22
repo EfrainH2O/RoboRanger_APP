@@ -1,11 +1,15 @@
 package com.example.roboranger.ui.views.form
 
 import android.content.pm.ActivityInfo
+import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -14,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -30,14 +35,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import com.example.roboranger.R
 import com.example.roboranger.domain.model.FormUiState
+import com.example.roboranger.domain.model.ImageState
 import com.example.roboranger.ui.components.RoboRangerTopAppBar
 import com.example.roboranger.navigation.NavigationDestination
 import com.example.roboranger.ui.components.LockScreenOrientation
@@ -45,7 +54,6 @@ import com.example.roboranger.ui.components.RoboRangerButton
 import com.example.roboranger.ui.components.RoboRangerFormMultiLineTextField
 import com.example.roboranger.ui.components.RoboRangerFormSelectionRadioButton
 import com.example.roboranger.ui.components.RoboRangerTextField
-import com.example.roboranger.ui.components.SelectableCardHorizontal
 import com.example.roboranger.ui.components.SelectableCardVertical
 
 object FormEntryDestination : NavigationDestination {
@@ -99,6 +107,9 @@ fun FormEntryScreen(
     var pluviosity by rememberSaveable { mutableStateOf("") }
     var ravineLevel by rememberSaveable { mutableStateOf("") }
 
+    // Ultima imagen capturada
+    val imageState by formViewModel.imageState.collectAsState()
+
     // Validacion de formularios
     val sharedOk = seasonOption != null && weatherOption != null && date.isNotBlank()
             && latitude.toDoubleOrNull() != null && longitude.toDoubleOrNull() != null
@@ -132,7 +143,9 @@ fun FormEntryScreen(
         },
         bottomBar = {
             Row(
-                Modifier.fillMaxWidth().padding(16.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
@@ -143,41 +156,47 @@ fun FormEntryScreen(
                 }
                 RoboRangerButton(
                     text = "Subir",
-                    enabled = !isLoading && (form1Ok || form7Ok),
+                    enabled = !isLoading && (form1Ok || form7Ok) && imageState is ImageState.Available,
                     modifier = Modifier.weight(1f)
                 ) {
-                    when (formType) {
-                        FormType.FORM1 -> formViewModel.submitForm1(
-                            transect = transect,
-                            weather = weatherOption!!.label,
-                            season = seasonOption!!.label,
-                            animalType = animalOption!!.label,
-                            commonName = commonName,
-                            scientificName = scientificName,
-                            individuals = individuals.toIntOrNull() ?: 0,
-                            observationsType = observationsTypeOption!!.label,
-                            observations = observations,
-                            latitude = latitude.toDouble(),
-                            longitude = longitude.toDouble(),
-                            maxTemp = tMax.toDouble(),
-                            maxHum = hMax.toDouble(),
-                            minTemp = tMin.toDouble(),
-                            date = date
-                        )
-                        FormType.FORM7 -> formViewModel.submitForm7(
-                            weather = weatherOption!!.label,
-                            season = seasonOption!!.label,
-                            zone = zoneOption!!.label,
-                            pluviosity = pluviosity.toDouble(),
-                            maxTemp = tMax.toDouble(),
-                            maxHum = hMax.toDouble(),
-                            minTemp = tMin.toDouble(),
-                            ravineLevel = ravineLevel.toDouble(),
-                            latitude = latitude.toDouble(),
-                            longitude = longitude.toDouble(),
-                            date = date
-                        )
-                        else -> {}
+                    val currentImageState = imageState
+                    if (currentImageState is ImageState.Available) {
+                        val imageUri: Uri = currentImageState.uri
+                        when (formType) {
+                            FormType.FORM1 -> formViewModel.submitForm1(
+                                transect = transect,
+                                weather = weatherOption!!.label,
+                                season = seasonOption!!.label,
+                                animalType = animalOption!!.label,
+                                commonName = commonName,
+                                scientificName = scientificName,
+                                individuals = individuals.toIntOrNull() ?: 0,
+                                observationsType = observationsTypeOption!!.label,
+                                observations = observations,
+                                latitude = latitude.toDouble(),
+                                longitude = longitude.toDouble(),
+                                maxTemp = tMax.toDouble(),
+                                maxHum = hMax.toDouble(),
+                                minTemp = tMin.toDouble(),
+                                date = date,
+                                imageUri = imageUri
+                            )
+                            FormType.FORM7 -> formViewModel.submitForm7(
+                                weather = weatherOption!!.label,
+                                season = seasonOption!!.label,
+                                zone = zoneOption!!.label,
+                                pluviosity = pluviosity.toDouble(),
+                                maxTemp = tMax.toDouble(),
+                                maxHum = hMax.toDouble(),
+                                minTemp = tMin.toDouble(),
+                                ravineLevel = ravineLevel.toDouble(),
+                                latitude = latitude.toDouble(),
+                                longitude = longitude.toDouble(),
+                                date = date,
+                                imageUri = imageUri
+                            )
+                            else -> {}
+                    }
                     }
                 }
             }
@@ -220,6 +239,40 @@ fun FormEntryScreen(
                     ravineLevel = ravineLevel, onRavineLevel = { ravineLevel = it }
                 )
                 else -> Unit
+            }
+            // Tarjeta de imagen capturada
+            Text(
+                text = "Imagen Capturada",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    when (val state = imageState) {
+                        is ImageState.Available -> {
+                        AsyncImage(
+                            model = state.uri,
+                            contentDescription = "Última imagen capturada",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        }
+                        is ImageState.NotAvailable -> {
+                            Text(
+                                text = "Ve a la pantalla de control para capturar una imagen",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    }
+                }
             }
 
             // Visibilidad de estados del formulario
