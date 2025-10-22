@@ -60,6 +60,8 @@ object FormDetailDestination : NavigationDestination {
 fun StaticFormScreen(
     onNavigateUp: () -> Unit,
     onNavigateSettings: () -> Unit,
+    canNavigateBack: Boolean = true,
+    canNavigateSettings: Boolean = true,
     viewModel: StaticFormViewModel = hiltViewModel()
 ) {
     val formState by viewModel.formState.collectAsState()
@@ -69,9 +71,10 @@ fun StaticFormScreen(
         topBar = {
             RoboRangerTopAppBar(
                 title = stringResource(FormDetailDestination.titleRes),
-                canNavigateBack = true,
+                canNavigateBack = canNavigateBack,
                 navigateUp = onNavigateUp,
-                canNavigateSettings = true,
+                canNavigateSettings = canNavigateSettings,
+                navigateToSettings = onNavigateSettings
             )
         },
         bottomBar = { if (!uploadedState){
