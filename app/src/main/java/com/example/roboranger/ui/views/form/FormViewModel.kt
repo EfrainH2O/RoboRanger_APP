@@ -2,6 +2,7 @@ package com.example.roboranger.ui.views.form
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.roboranger.data.remote.dto.Form1RequestDto
@@ -11,11 +12,14 @@ import com.example.roboranger.domain.model.ImageState
 import com.example.roboranger.domain.usecase.GetLatestImageStateUseCase
 import com.example.roboranger.domain.usecase.SubmitForm1UseCase
 import com.example.roboranger.domain.usecase.SubmitForm7UseCase
+import com.example.roboranger.domain.usecase.control.GetLocationUseCase
+import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,6 +28,7 @@ class FormViewModel @Inject constructor(
     private val submitForm1UseCase: SubmitForm1UseCase,
     private val submitForm7UseCase: SubmitForm7UseCase,
     private val getLatestImageStateUseCase: GetLatestImageStateUseCase,
+    private val getLocationUseCase: GetLocationUseCase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -179,5 +184,33 @@ class FormViewModel @Inject constructor(
     // Funcion para resetear el estado del formulario
     fun resetUiState() {
         _uiState.value = FormUiState.Idle
+    }
+
+    // Funcion para obtener los valores de la latitud y longitud desde Google Maps
+    val latitude = mutableStateOf("")
+    val longitude = mutableStateOf("")
+    private val _isFetchingLocation = MutableStateFlow(false)
+    val isFetchingLocation: StateFlow<Boolean> = _isFetchingLocation.asStateFlow()
+
+    fun fetchCurrentLocation() {
+        viewModelScope.launch {
+            _isFetchingLocation.value = true
+            try {
+                val location: LatLng? = getLocationUseCase().first()
+
+                if (location != null) {
+                    // Actualizar los estados de latitude y longitude con los valores obtenidos
+                    latitude.value = location.latitude.toString()
+                    longitude.value = location.longitude.toString()
+                } else {
+                    // Manejar el caso de error donde no se pudo obtener la ubicacion
+                    _uiState.value = FormUiState.Error("No se pudo obtener la ubicacion. Comprueba los permisos y la configuracion del GPS")
+                }
+            } catch (e: Exception) {
+                _uiState.value = FormUiState.Error("Error al obtener la ubicación: ${e.message}")
+            } finally {
+                _isFetchingLocation.value = false
+            }
+        }
     }
 }

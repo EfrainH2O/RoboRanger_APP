@@ -14,16 +14,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -35,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -55,13 +64,16 @@ import com.example.roboranger.ui.components.RoboRangerFormMultiLineTextField
 import com.example.roboranger.ui.components.RoboRangerFormSelectionRadioButton
 import com.example.roboranger.ui.components.RoboRangerTextField
 import com.example.roboranger.ui.components.SelectableCardVertical
+import com.example.roboranger.ui.theme.PrimaryForestGreen
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 object FormEntryDestination : NavigationDestination {
     override val route = "form_entry"
     override val titleRes = R.string.form_entry_title
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun FormEntryScreen(
     onNavigateUp: () -> Unit,
@@ -84,14 +96,22 @@ fun FormEntryScreen(
     var seasonOption by rememberSaveable { mutableStateOf<SeasonOptions?>(null) }
     var weatherOption by rememberSaveable { mutableStateOf<WeatherOptions?>(null) }
     var date by rememberSaveable { mutableStateOf("") }
-    var latitude by rememberSaveable { mutableStateOf("") }
-    var longitude by rememberSaveable { mutableStateOf("") }
+    val latitude by formViewModel.latitude
+    val longitude by formViewModel.longitude
     var tMax by rememberSaveable { mutableStateOf("") }
     var tMin by rememberSaveable { mutableStateOf("") }
     var hMax by rememberSaveable { mutableStateOf("") }
 
     // Campo de Formulario modular
     var formType by rememberSaveable { mutableStateOf(FormType.NONE) }
+
+    // Configuracion del estado de los permisos de ubicacion
+    val locationPermissionsState = rememberMultiplePermissionsState(
+        listOf(
+            android.Manifest.permission.ACCESS_COARSE_LOCATION,
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+        )
+    )
 
     // Campos del Formulario 1
     var transect by rememberSaveable { mutableStateOf("") }
@@ -214,13 +234,21 @@ fun FormEntryScreen(
                 seasonOption = seasonOption, onSeason = { seasonOption = it },
                 weatherOption = weatherOption, onWeather = { weatherOption = it },
                 date = date, onDate = { date = it },
-                latitude = latitude, onLatitude = { latitude = it },
-                longitude = longitude, onLongitude = { longitude = it },
+                latitude = latitude, onLatitude = { formViewModel.latitude.value = it },
+                longitude = longitude, onLongitude = { formViewModel.longitude.value = it },
                 tMax = tMax, onTMax = { tMax = it },
                 tMin = tMin, onTMin = { tMin = it },
                 hMax = hMax, onHMax = { hMax = it },
                 formType = formType, onFormType = { formType = it },
-                isLoading = isLoading
+                isLoading = isLoading,
+                onLocationClick = {
+                    if (locationPermissionsState.allPermissionsGranted) {
+                        formViewModel.fetchCurrentLocation()
+                    } else {
+                        locationPermissionsState.launchMultiplePermissionRequest()
+                    }
+                },
+                isFetchingLocation = formViewModel.isFetchingLocation.collectAsState().value
             )
             // Formulario Condicional
             when (formType) {
@@ -303,7 +331,9 @@ fun FormEntryBody(
     hMax: String, onHMax: (String) -> Unit,
     tMin: String, onTMin: (String) -> Unit,
     formType: FormType, onFormType: (FormType) -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    onLocationClick: () -> Unit,
+    isFetchingLocation: Boolean
 ) {
     Text(
         text = "Datos Generales",
@@ -378,6 +408,28 @@ fun FormEntryBody(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f)
         )
+        Surface(
+            modifier = Modifier.size(56.dp).padding(top = 10.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.primary,
+            onClick = if (isFetchingLocation) { {} } else { onLocationClick }
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                if (isFetchingLocation) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 3.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.LocationOn,
+                        contentDescription = "Ubicación Actual",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
     }
     // Mediciones de temperatura con una fila que contiene dos textfields de min y max
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
